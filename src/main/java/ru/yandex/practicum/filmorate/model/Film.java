@@ -6,7 +6,6 @@ import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Data;
 
-import java.time.Duration;
 import java.time.LocalDate;
 
 /**
@@ -29,13 +28,5 @@ public class Film {
     private LocalDate releaseDate;
 
     @NotNull
-    private Duration duration;
-
-    public long getDuration() {
-        return duration.toMinutes();
-    }
-
-    public void setDuration(long minutes) {
-        duration = Duration.ofMinutes(minutes);
-    }
+    private long duration;
 }

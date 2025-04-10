@@ -7,6 +7,7 @@ import ru.yandex.practicum.filmorate.exception.InvalidFilmInputException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.HashMap;
@@ -29,6 +30,9 @@ public class FilmController {
                 film.getDuration() > 0 && !films.containsValue(film)) {
             film.setId(getNextId());
             log.trace("Фильму {} присвоен id={}", film.getName(), film.getId());
+            Duration duration = Duration.ofMinutes(film.getDuration());
+            System.out.println(film.getDuration());
+            System.out.println(duration);
             films.put(film.getId(), film);
             log.debug("Фильм {} успешно добавлен", film.getName());
             return film;
