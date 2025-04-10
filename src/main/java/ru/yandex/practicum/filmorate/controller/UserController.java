@@ -1,10 +1,11 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.InvalidUserInputException;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
@@ -25,22 +26,21 @@ public class UserController {
 
     @PostMapping
     public User addUser(@Valid @RequestBody User newUser) {
-        if (users.values().stream().anyMatch(user -> user.getEmail().equals(newUser.getEmail())
-                && !newUser.equals(user))) {
-            log.warn("email {} уже используется", newUser.getEmail());
+        if (users.values().stream().anyMatch(user -> user.getEmail().equals(newUser.getEmail()))) {
+            log.warn("email '{}' уже используется", newUser.getEmail());
             throw new InvalidUserInputException("Этот email уже используется");
         } else if (newUser.getBirthday().isAfter(LocalDate.now())) {
-            log.warn("Дата рождения должна быть раньше сегодняшней даты. Введенная дата {}", newUser.getBirthday());
+            log.warn("Дата рождения должна быть раньше сегодняшней даты. Введенная дата '{}'", newUser.getBirthday());
             throw new InvalidUserInputException("Дата рождения должна быть раньше сегодняшней даты.");
         } else if (newUser.getLogin().contains(" ")) {
-            log.warn("Логин {} содержит пробел", newUser.getLogin());
+            log.warn("Логин '{}' содержит пробел", newUser.getLogin());
             throw new InvalidUserInputException("Логин не может содержать пробелы.");
         } else if (newUser.getName() == null || newUser.getName().isBlank()) {
             newUser.setName(newUser.getLogin());
-            log.trace("Имя пользователя {} заменено на его логин", newUser.getLogin());
+            log.trace("Имя пользователя '{}' заменено на его логин", newUser.getLogin());
         }
         newUser.setId(getNextId());
-        log.trace("Пользователю {} присвоен id={}", newUser.getLogin(), newUser.getId());
+        log.trace("Пользователю '{}' присвоен id={}", newUser.getLogin(), newUser.getId());
         users.put(newUser.getId(), newUser);
         log.debug("User успешно добавлен");
         return newUser;
@@ -54,18 +54,18 @@ public class UserController {
         } else if (users.containsKey(newUser.getId())) {
             if (users.values().stream().anyMatch(user -> user.getEmail().equals(newUser.getEmail())
                     && !newUser.equals(user))) {
-                log.warn("email {} уже используется", newUser.getEmail());
+                log.warn("email '{}' уже используется", newUser.getEmail());
                 throw new InvalidUserInputException("Этот имейл уже используется");
             } else if (newUser.getBirthday().isAfter(LocalDate.now())) {
-                log.warn("Дата рождения должна быть раньше сегодняшней даты. Введенная дата {}", newUser.getBirthday());
+                log.warn("Дата рождения должна быть раньше сегодняшней даты. Введенная дата '{}'", newUser.getBirthday());
                 throw new InvalidUserInputException("Дата рождения должна быть раньше сегодняшней даты.");
             } else if (newUser.getLogin().contains(" ")) {
-                log.warn("Логин {} содержит пробел", newUser.getLogin());
+                log.warn("Логин '{}' содержит пробел", newUser.getLogin());
                 throw new InvalidUserInputException("Логин не может содержать пробелы.");
             }
             if (newUser.getName().isBlank()) {
                 newUser.setName(newUser.getLogin());
-                log.trace("Имя пользователя {} заменено на его логин", newUser.getLogin());
+                log.trace("Имя пользователя '{}' заменено на его логин", newUser.getLogin());
             }
             users.put(newUser.getId(), newUser);
             log.debug("User успешно обновлен");
