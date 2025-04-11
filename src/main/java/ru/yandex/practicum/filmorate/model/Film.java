@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.model;
 
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -28,5 +29,6 @@ public class Film {
     private LocalDate releaseDate;
 
     @NotNull
-    private long duration;
+    @Min(1)
+    private int duration;
 }
