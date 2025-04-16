@@ -1,0 +1,16 @@
+[
+  {
+    "id": 1,
+    "name": "filmtest",
+    "description": "adipisicing",
+    "releaseDate": "2002-03-25",
+    "duration": 125
+  },
+  {
+    "id": 2,
+    "name": "film2",
+    "description": "desc2",
+    "releaseDate": "1999-03-25",
+    "duration": 130
+  }
+]

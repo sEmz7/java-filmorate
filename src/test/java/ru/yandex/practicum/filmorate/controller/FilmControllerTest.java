@@ -1,80 +1,96 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import ru.yandex.practicum.filmorate.exception.InvalidFilmInputException;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.model.Film;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import org.springframework.util.ResourceUtils;
 
-import java.time.LocalDate;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+@Slf4j
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureMockMvc
+public class FilmControllerTest {
 
-class FilmControllerTest {
-    private static FilmController filmController;
+    public static final String PATH = "/films";
+    @Autowired
+    private MockMvc mockMvc;
+
+    FilmController filmController;
 
     @BeforeEach
-    void setup() {
+    void setUp() {
         filmController = new FilmController();
     }
 
     @Test
-    void getAllFilmsTest() {
-        Film film1 = Film.builder()
-                .id(1L)
-                .name("name")
-                .description("Desc")
-                .releaseDate(LocalDate.of(2022, 12, 12))
-                .duration(144)
-                .build();
-        Film film2 = Film.builder()
-                .id(2L)
-                .name("name2")
-                .description("Desc2")
-                .releaseDate(LocalDate.of(2012, 2, 12))
-                .duration(113)
-                .build();
-        filmController.addFilm(film1);
-        filmController.addFilm(film2);
-
-        assertEquals(2, filmController.getAllFilms().size());
+    void create() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.post(PATH)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(getContentFromFile("controller/film/create/request/film.json")))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().json(
+                        getContentFromFile("controller/film/create/response/film.json")
+                ));
     }
 
     @Test
-    void addFilmTest() {
-        Film filmInvalidDate = Film.builder()
-                .id(1L)
-                .name("name")
-                .description("Desc")
-                .releaseDate(LocalDate.of(1700, 12, 12))
-                .duration(144)
-                .build();
-
-        assertThrows(InvalidFilmInputException.class, () -> filmController.addFilm(filmInvalidDate));
+    void update() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.post(PATH)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(getContentFromFile("controller/film/create/request/film.json")))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().json(
+                        getContentFromFile("controller/film/create/response/film.json")
+                ));
+        mockMvc.perform(MockMvcRequestBuilders.put(PATH)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(getContentFromFile("update/request/film.json")))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().json(
+                        getContentFromFile("update/response/film.json")
+                ));
     }
 
     @Test
-    void updateFilmTest() {
-        Film film = Film.builder()
-                .id(1L)
-                .name("name")
-                .description("Desc")
-                .releaseDate(LocalDate.of(2000, 12, 12))
-                .duration(144)
-                .build();
-        filmController.addFilm(film);
-        film.setReleaseDate(LocalDate.of(1700, 10, 10));
+    void getAll() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.post(PATH)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(getContentFromFile("controller/film/create/request/film.json")))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().json(
+                        getContentFromFile("controller/film/create/response/film.json")
+                ));
+        mockMvc.perform(MockMvcRequestBuilders.post(PATH)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(getContentFromFile("controller/film/create/request/film2.json")))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().json(
+                        getContentFromFile("controller/film/create/response/film2.json")
+                ));
+        mockMvc.perform(MockMvcRequestBuilders.get(PATH))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().json(
+                        getContentFromFile("get/films.json")
+                ));
+    }
 
-        Film film2 = Film.builder()
-                .id(999999999L)
-                .name("name")
-                .description("Desc")
-                .releaseDate(LocalDate.of(2000, 12, 12))
-                .duration(144)
-                .build();
-
-        assertThrows(InvalidFilmInputException.class, () -> filmController.updateFilm(film));
-        assertThrows(NotFoundException.class, () -> filmController.updateFilm(film2));
+    private String getContentFromFile(String filename) {
+        try {
+            return Files.readString(ResourceUtils.getFile("classpath:" + filename).toPath(),
+                    StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            log.warn("Не удалось открыть файл");
+            throw new RuntimeException(e);
+        }
     }
 }
