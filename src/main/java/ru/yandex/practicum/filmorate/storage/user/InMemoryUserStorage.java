@@ -14,7 +14,7 @@ import java.util.Map;
 
 @Component
 @Slf4j
-public class InMemoryUserStorage implements UserStorage{
+public class InMemoryUserStorage implements UserStorage {
     private final Map<Long, User> users = new HashMap<>();
 
     @Override
@@ -81,5 +81,12 @@ public class InMemoryUserStorage implements UserStorage{
             newUser.setName(newUser.getLogin());
             log.trace("Имя пользователя '{}' заменено на его логин", newUser.getLogin());
         }
+    }
+
+    public User getUserById(long id) {
+        return users.values().stream()
+                .filter(user -> user.getId() == id)
+                .findFirst()
+                .orElseThrow(() -> new NotFoundException("Пользователь с Id=" + id + " не найден."));
     }
 }

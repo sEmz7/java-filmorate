@@ -9,12 +9,12 @@ import ru.yandex.practicum.filmorate.model.Film;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 @Component
 @Slf4j
-public class InMemoryFilmStorage implements FilmStorage{
-
+public class InMemoryFilmStorage implements FilmStorage {
     private final Map<Long, Film> films = new HashMap<>();
 
     @Override
@@ -27,6 +27,7 @@ public class InMemoryFilmStorage implements FilmStorage{
         validateFilmDate(film);
         film.setId(getNextId());
         log.trace("Фильму {} присвоен id={}", film.getName(), film.getId());
+        film.setLikes(new HashSet<>());
         films.put(film.getId(), film);
         log.debug("Фильм {} успешно добавлен", film.getName());
         return film;
@@ -39,6 +40,9 @@ public class InMemoryFilmStorage implements FilmStorage{
             throw new NotFoundException("Нет фильма с таким id.");
         }
         validateFilmDate(film);
+        if (film.getLikes() == null) {
+            film.setLikes(new HashSet<>());
+        }
         films.put(film.getId(), film);
         log.debug("Фильм {} успешно обновлен", film.getName());
         return film;
@@ -58,7 +62,7 @@ public class InMemoryFilmStorage implements FilmStorage{
         return ++currentMaxId;
     }
 
-    public void validateFilmDate(Film newFilm) {
+    private void validateFilmDate(Film newFilm) {
         if (newFilm.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
             log.warn("Дата {} фильма {} раньше 1895.12.28", newFilm.getReleaseDate(), newFilm.getName());
             throw new InvalidFilmInputException("Дата фильма должна быть после 1895.12.28");
