@@ -24,6 +24,10 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public User create(User user) {
+        if (users.values().stream().anyMatch(user1 -> user1.getEmail().equals(user.getEmail()))) {
+            log.warn("email '{}' уже используется", user.getEmail());
+            throw new InvalidUserInputException("Этот email уже используется");
+        }
         validateUser(user);
         user.setId(getNextId());
         log.trace("Пользователю '{}' присвоен id={}", user.getLogin(), user.getId());
@@ -42,6 +46,11 @@ public class InMemoryUserStorage implements UserStorage {
         if (!users.containsKey(user.getId())) {
             log.warn("Пользователь с id={} не был найден", user.getId());
             throw new NotFoundException("Пользователь с id = " + user.getId() + " не найден");
+        }
+        if (users.values().stream().anyMatch(user1 -> user1.getEmail().equals(user.getEmail())
+                && !user.equals(user1))) {
+            log.warn("email '{}' уже используется", user.getEmail());
+            throw new InvalidUserInputException("Этот email уже используется");
         }
         validateUser(user);
         users.put(user.getId(), user);
@@ -64,11 +73,6 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     public void validateUser(User newUser) {
-        if (users.values().stream().anyMatch(user -> user.getEmail().equals(newUser.getEmail())
-                && !user.equals(newUser))) {
-            log.warn("email '{}' уже используется", newUser.getEmail());
-            throw new InvalidUserInputException("Этот email уже используется");
-        }
         if (newUser.getBirthday().isAfter(LocalDate.now())) {
             log.warn("Дата рождения должна быть раньше сегодняшней даты. Введенная дата '{}'", newUser.getBirthday());
             throw new InvalidUserInputException("Дата рождения должна быть раньше сегодняшней даты.");

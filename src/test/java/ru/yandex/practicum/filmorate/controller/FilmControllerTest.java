@@ -1,19 +1,16 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.util.ResourceUtils;
-import ru.yandex.practicum.filmorate.service.FilmService;
-import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
-import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -22,18 +19,12 @@ import java.nio.file.Files;
 @Slf4j
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class FilmControllerTest {
 
     public static final String PATH = "/films";
     @Autowired
     private MockMvc mockMvc;
-
-    FilmController filmController;
-
-    @BeforeEach
-    void setUp() {
-        filmController = new FilmController(new FilmService(new InMemoryFilmStorage(), new InMemoryUserStorage()));
-    }
 
     @Test
     void create() throws Exception {
@@ -50,17 +41,17 @@ public class FilmControllerTest {
     void update() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.post(PATH)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(getContentFromFile("controller/film/create/request/film.json")))
+                        .content(getContentFromFile("controller/film/update/request/film.json")))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content().json(
-                        getContentFromFile("controller/film/create/response/film.json")
+                        getContentFromFile("controller/film/update/response/film.json")
                 ));
         mockMvc.perform(MockMvcRequestBuilders.put(PATH)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(getContentFromFile("update/request/film.json")))
+                .content(getContentFromFile("controller/film/update/request/film-update.json")))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content().json(
-                        getContentFromFile("update/response/film.json")
+                        getContentFromFile("controller/film/update/response/film-update.json")
                 ));
     }
 
@@ -83,7 +74,7 @@ public class FilmControllerTest {
         mockMvc.perform(MockMvcRequestBuilders.get(PATH))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content().json(
-                        getContentFromFile("get/films.json")
+                        getContentFromFile("controller/film/get/films.json")
                 ));
     }
 
