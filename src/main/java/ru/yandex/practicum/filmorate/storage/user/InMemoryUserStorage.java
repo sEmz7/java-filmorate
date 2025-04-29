@@ -16,6 +16,7 @@ import java.util.Map;
 @Slf4j
 public class InMemoryUserStorage implements UserStorage {
     private final Map<Long, User> users = new HashMap<>();
+    private final Map<String, User> reservedEmails = new HashMap<>();
 
     @Override
     public Collection<User> findAll() {
@@ -24,7 +25,7 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public User create(User user) {
-        if (users.values().stream().anyMatch(user1 -> user1.getEmail().equals(user.getEmail()))) {
+        if (reservedEmails.containsKey(user.getEmail())) {
             log.warn("email '{}' уже используется", user.getEmail());
             throw new InvalidUserInputException("Этот email уже используется");
         }
@@ -32,6 +33,7 @@ public class InMemoryUserStorage implements UserStorage {
         user.setId(getNextId());
         log.trace("Пользователю '{}' присвоен id={}", user.getLogin(), user.getId());
         user.setFriends(new HashSet<>());
+        reservedEmails.put(user.getEmail(), user);
         users.put(user.getId(), user);
         log.debug("User успешно добавлен");
         return user;
@@ -47,8 +49,7 @@ public class InMemoryUserStorage implements UserStorage {
             log.warn("Пользователь с id={} не был найден", user.getId());
             throw new NotFoundException("Пользователь с id = " + user.getId() + " не найден");
         }
-        if (users.values().stream().anyMatch(user1 -> user1.getEmail().equals(user.getEmail())
-                && !user.equals(user1))) {
+        if (reservedEmails.containsKey(user.getEmail()) && reservedEmails.get(user.getEmail()) != user) {
             log.warn("email '{}' уже используется", user.getEmail());
             throw new InvalidUserInputException("Этот email уже используется");
         }
@@ -60,6 +61,7 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public User delete(long id) {
+        reservedEmails.remove(getUserById(id).getEmail());
         return users.remove(id);
     }
 
@@ -72,7 +74,7 @@ public class InMemoryUserStorage implements UserStorage {
         return ++currentMaxId;
     }
 
-    public void validateUser(User newUser) {
+    private void validateUser(User newUser) {
         if (newUser.getBirthday().isAfter(LocalDate.now())) {
             log.warn("Дата рождения должна быть раньше сегодняшней даты. Введенная дата '{}'", newUser.getBirthday());
             throw new InvalidUserInputException("Дата рождения должна быть раньше сегодняшней даты.");
@@ -88,9 +90,10 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     public User getUserById(long id) {
-        return users.values().stream()
-                .filter(user -> user.getId() == id)
-                .findFirst()
-                .orElseThrow(() -> new NotFoundException("Пользователь с Id=" + id + " не найден."));
+        User user = users.get(id);
+        if (user == null) {
+            throw new NotFoundException("Пользователь с Id=" + id + " не найден.");
+        }
+        return user;
     }
 }

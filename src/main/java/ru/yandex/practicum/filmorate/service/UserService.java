@@ -75,8 +75,8 @@ public class UserService {
         User user = userStorage.getUserById(userId);
         Set<Long> userFriendsId = user.getFriends();
         log.debug("Возвращены друзья пользователя с id={}", user.getId());
-        return userStorage.findAll().stream()
-                .filter(user1 -> userFriendsId.contains(user1.getId()))
+        return userFriendsId.stream()
+                .map(userStorage::getUserById)
                 .toList();
     }
 

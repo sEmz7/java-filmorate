@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 import ru.yandex.practicum.filmorate.exception.InvalidUserInputException;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
@@ -42,7 +41,7 @@ public class FilmService {
     }
 
     public Film addLike(long filmId, long userId) {
-        Film film = findFilmById(filmId);
+        Film film = filmStorage.findFilmById(filmId);
         User user = userStorage.getUserById(userId);
         film.getLikes().add(user.getId());
         log.debug("User id={} поставил лайк фильму с id={}", user.getId(), film.getId());
@@ -50,14 +49,14 @@ public class FilmService {
     }
 
     public Film deleteLike(long filmId, long userId) {
-        Film film = findFilmById(filmId);
+        Film film = filmStorage.findFilmById(filmId);
         User user = userStorage.getUserById(userId);
         film.getLikes().remove(user.getId());
         log.debug("User id={} удалил лайк у фильма с id={}", user.getId(), film.getId());
         return filmStorage.update(film);
     }
 
-    public List<Film> findBestByLikes(long count) {
+    public List<Film> findBestByLikes(int count) {
         if (count <= 0) {
             log.warn("Параметр count меньше нуля.");
             throw new InvalidUserInputException("Параметр count должен быть положительным числом");
@@ -66,17 +65,6 @@ public class FilmService {
         List<Film> allFilms = new ArrayList<>(filmStorage.findAll());
         allFilms.sort(Comparator.comparingInt(film -> -film.getLikes().size()));
         log.debug("Возвращен список из лучших фильмов.");
-        if (allFilms.size() < count) {
-            return allFilms.subList(0, allFilms.size());
-        }
-        return allFilms.subList(0, (int) count);
-    }
-
-
-    private Film findFilmById(long id) {
-        return filmStorage.findAll().stream()
-                .filter(film -> film.getId() == id)
-                .findFirst()
-                .orElseThrow(() -> new NotFoundException("Фильм с id=" + id + " не найден."));
+        return allFilms.subList(0, Math.min(count, allFilms.size()));
     }
 }
