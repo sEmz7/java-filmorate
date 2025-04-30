@@ -1,6 +1,8 @@
 {
+  "id": 2,
   "name": "film2",
   "description": "desc2",
   "releaseDate": "1999-03-25",
-  "duration": 130
+  "duration": 130,
+  "likes": []
 }

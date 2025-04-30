@@ -5,6 +5,8 @@ import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.exception.InvalidUserInputException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 
 import java.time.LocalDate;
 
@@ -15,7 +17,7 @@ class UserControllerTest {
 
     @BeforeEach
     void setup() {
-        userController = new UserController();
+        userController = new UserController(new UserService(new InMemoryUserStorage()));
     }
 
     @Test
@@ -26,7 +28,7 @@ class UserControllerTest {
                 .name("name")
                 .birthday(LocalDate.of(2002, 10, 10))
                 .build();
-        userController.addUser(user1);
+        userController.create(user1);
         user1.setName("aawdawd");
 
         User userWithInvalidDate = User.builder()
@@ -44,9 +46,9 @@ class UserControllerTest {
                 .build();
 
 
-        assertThrows(InvalidUserInputException.class, () -> userController.addUser(user1));
-        assertThrows(InvalidUserInputException.class, () -> userController.addUser(userWithInvalidDate));
-        assertThrows(InvalidUserInputException.class, () -> userController.addUser(userWithSpaceInLogin));
+        assertThrows(InvalidUserInputException.class, () -> userController.create(user1));
+        assertThrows(InvalidUserInputException.class, () -> userController.create(userWithInvalidDate));
+        assertThrows(InvalidUserInputException.class, () -> userController.create(userWithSpaceInLogin));
     }
 
     @Test
@@ -59,12 +61,12 @@ class UserControllerTest {
                 .birthday(LocalDate.of(2000, 10, 10))
                 .build();
 
-        assertThrows(NotFoundException.class, () -> userController.updateUser(user1));
+        assertThrows(NotFoundException.class, () -> userController.update(user1));
 
-        userController.addUser(user1);
+        userController.create(user1);
         user1.setBirthday(LocalDate.of(9999, 12,12));
 
-        assertThrows(InvalidUserInputException.class, () -> userController.updateUser(user1));
+        assertThrows(InvalidUserInputException.class, () -> userController.update(user1));
 
         User user2 = User.builder()
                 .id(1L)
@@ -73,9 +75,9 @@ class UserControllerTest {
                 .name("name")
                 .birthday(LocalDate.of(2002, 10, 10))
                 .build();
-        userController.addUser(user2);
+        userController.create(user2);
         user2.setLogin("login space");
 
-        assertThrows(InvalidUserInputException.class, () -> userController.updateUser(user2));
+        assertThrows(InvalidUserInputException.class, () -> userController.update(user2));
     }
 }
