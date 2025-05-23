@@ -1,7 +1,8 @@
 # java-filmorate
 Template repository for Filmorate project.
-# Схема DB
-![DB](https://github.com/user-attachments/assets/f3be83bf-2ec3-492f-9006-2c331df52a08)
+## Схема DB
+![db](https://github.com/user-attachments/assets/10e8b04e-de18-45c0-aeed-9c8f8d8b88e8)
+
 
 ### 1. users
 - Таблица с пользователями
