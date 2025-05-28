@@ -1,16 +1,19 @@
-package ru.yandex.practicum.filmorate.storage.film;
+package ru.yandex.practicum.filmorate.storage.inmemory;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.InvalidFilmInputException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Like;
+import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.time.LocalDate;
 import java.util.*;
 
 @Component
 @Slf4j
+@Deprecated
 public class InMemoryFilmStorage implements FilmStorage {
     private final Map<Long, Film> films = new HashMap<>();
 
@@ -57,6 +60,21 @@ public class InMemoryFilmStorage implements FilmStorage {
             throw new NotFoundException("Фильм с id=" + id + " не найден.");
         }
         return film;
+    }
+
+    @Override
+    public List<Like> findFilmLikes(long id) {
+        return null;
+    }
+
+    @Override
+    public void addLike(long filmId, long userId) {
+
+    }
+
+    @Override
+    public void deleteLike(long filmId, long userId) {
+
     }
 
     private long getNextId() {

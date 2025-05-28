@@ -2,11 +2,14 @@ package ru.yandex.practicum.filmorate.controller;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.jdbc.core.JdbcTemplate;
 import ru.yandex.practicum.filmorate.exception.InvalidUserInputException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.mapper.UserRowMapper;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
-import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
+import ru.yandex.practicum.filmorate.storage.db.FriendDbStorage;
+import ru.yandex.practicum.filmorate.storage.inmemory.InMemoryUserStorage;
 
 import java.time.LocalDate;
 
@@ -17,7 +20,7 @@ class UserControllerTest {
 
     @BeforeEach
     void setup() {
-        userController = new UserController(new UserService(new InMemoryUserStorage()));
+        userController = new UserController(new UserService(new InMemoryUserStorage(), new FriendDbStorage(new JdbcTemplate(), new UserRowMapper())));
     }
 
     @Test

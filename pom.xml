@@ -47,6 +47,15 @@
 			<artifactId>logbook-spring-boot-starter</artifactId>
 			<version>3.7.2</version>
 		</dependency>
+		<!-- spring-boot-starter-jdbc -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-jdbc</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+		</dependency>
 	</dependencies>
 
 	<build>

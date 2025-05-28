@@ -1,19 +1,18 @@
-package ru.yandex.practicum.filmorate.storage.user;
+package ru.yandex.practicum.filmorate.storage.inmemory;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.InvalidUserInputException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.time.LocalDate;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
 
 @Component
 @Slf4j
+@Deprecated
 public class InMemoryUserStorage implements UserStorage {
     private final Map<Long, User> users = new HashMap<>();
     private final Map<String, User> reservedEmails = new HashMap<>();
@@ -61,7 +60,7 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public User delete(long id) {
-        reservedEmails.remove(getUserById(id).getEmail());
+        reservedEmails.remove(getUserById(id).get().getEmail());
         return users.remove(id);
     }
 
@@ -89,11 +88,11 @@ public class InMemoryUserStorage implements UserStorage {
         }
     }
 
-    public User getUserById(long id) {
+    public Optional<User> getUserById(long id) {
         User user = users.get(id);
         if (user == null) {
             throw new NotFoundException("Пользователь с Id=" + id + " не найден.");
         }
-        return user;
+        return Optional.of(user);
     }
 }
