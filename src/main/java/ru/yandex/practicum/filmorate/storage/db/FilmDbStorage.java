@@ -34,7 +34,10 @@ public class FilmDbStorage implements FilmStorage {
             "JOIN ratings AS r ON f.rating_id = r.rating_id ";
     private static final String CREATE_FILM =
             "INSERT INTO films(name, description, release_date, duration, rating_id) " + "VALUES (?, ?, ?, ?, ?);";
-    private static final String FIND_BY_ID = "SELECT * FROM films WHERE id = ?;";
+    private static final String FIND_BY_ID = "SELECT f.id, f.name, f.description, f.release_date, f.duration, " +
+            "f.rating_id, r.name AS rating_name " +
+            "FROM films AS f " +
+            "JOIN ratings AS r ON f.rating_id = r.rating_id WHERE f.id = ?";
     private static final String UPDATE =
             "UPDATE films SET name = ?, description = ?, release_date = ?, duration = ? WHERE id = ?;";
 
@@ -78,7 +81,7 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film findFilmById(long id) {
-        Film film = jdbc.query(FIND_BY_ID, (rs, rowNum) -> getFilmFromResultSet(rs), id)
+        Film film = jdbc.query(FIND_BY_ID, filmRowMapper, id)
                 .stream()
                 .findFirst()
                 .orElseThrow(() -> new NotFoundException("Нет фильма с id=" + id));
