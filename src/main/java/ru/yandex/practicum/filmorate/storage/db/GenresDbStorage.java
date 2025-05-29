@@ -20,7 +20,7 @@ public class GenresDbStorage {
 
     public void saveFilmGenres(long filmId, List<Genre> genres) {
         jdbc.update("DELETE FROM film_genres WHERE film_id = ?", filmId);
-        for(Genre genre: genres) {
+        for (Genre genre : genres) {
             getGenreById(genre.getId());
             jdbc.update(SAVE_FILM_GENRES, filmId, genre.getId());
         }

@@ -44,7 +44,7 @@ public class FilmService {
     }
 
     public Film update(@Valid @RequestBody Film newFilm) {
-        if (newFilm.getId() == null)  {
+        if (newFilm.getId() == null) {
             throw new InvalidFilmInputException("Укажите id фильму.");
         }
         return filmStorage.update(newFilm);
