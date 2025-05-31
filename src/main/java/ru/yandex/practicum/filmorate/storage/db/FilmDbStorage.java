@@ -30,7 +30,7 @@ public class FilmDbStorage implements FilmStorage {
     private static final String FIND_ALL = "SELECT f.id, f.name, f.description, f.release_date, f.duration, " +
             "f.rating_id, r.name AS rating_name " +
             "FROM films AS f " +
-            "JOIN ratings AS r ON f.rating_id = r.rating_id ";
+            "INNER JOIN ratings AS r ON f.rating_id = r.rating_id ";
     private static final String CREATE_FILM =
             "INSERT INTO films(name, description, release_date, duration, rating_id) " + "VALUES (?, ?, ?, ?, ?);";
     private static final String FIND_BY_ID =
@@ -38,7 +38,7 @@ public class FilmDbStorage implements FilmStorage {
                     "f.rating_id, r.name AS rating_name, " +
                     "g.genre_id, gr.name AS genre_name " +
                     "FROM films AS f " +
-                    "JOIN ratings AS r ON f.rating_id = r.rating_id " +
+                    "INNER JOIN ratings AS r ON f.rating_id = r.rating_id " +
                     "LEFT JOIN film_genres AS g ON f.id = g.film_id " +
                     "LEFT JOIN genres AS gr ON g.genre_id = gr.genre_id " +
                     "WHERE f.id = ?";
