@@ -89,8 +89,7 @@ public class UserDbStorage implements UserStorage {
 
         if (id != null) {
             return id;
-        } else {
-            throw new InternalServerException("Не удалось сохранить данные");
         }
+        throw new InternalServerException("Не удалось сохранить данные");
     }
 }

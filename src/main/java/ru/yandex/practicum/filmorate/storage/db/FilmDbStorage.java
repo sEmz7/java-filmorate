@@ -117,9 +117,8 @@ public class FilmDbStorage implements FilmStorage {
 
         if (id != null) {
             return id;
-        } else {
-            throw new InternalServerException("Не удалось сохранить данные");
         }
+        throw new InternalServerException("Не удалось сохранить данные");
     }
 
     @Override

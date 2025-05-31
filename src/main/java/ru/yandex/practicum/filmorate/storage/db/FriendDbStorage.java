@@ -16,7 +16,7 @@ public class FriendDbStorage {
     private static final String ADD_FRIEND_QUERY = "INSERT INTO friends (user_id, friend_id) VALUES (?, ?)";
     private static final String FIND_USER_FRIENDS = "SELECT u.id, u.name, u.login, u.email, u.birthday " +
             "FROM friends AS f " +
-            "JOIN users AS u ON u.id = f.friend_id " +
+            "INNER JOIN users AS u ON u.id = f.friend_id " +
             "WHERE f.user_id = ? " +
             "ORDER BY u.id";
     private static final String DELETE_USER_FRIEND = "DELETE FROM friends WHERE user_id = ? AND friend_id = ?";
