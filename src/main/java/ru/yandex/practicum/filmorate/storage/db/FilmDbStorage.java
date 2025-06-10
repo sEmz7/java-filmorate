@@ -36,7 +36,7 @@ public class FilmDbStorage implements FilmStorage {
     private static final String CREATE_FILM =
             "INSERT INTO films(name, description, release_date, duration, director, rating_id) " + "VALUES (?, ?, ?, ?, ?, ?);";
     private static final String FIND_BY_ID =
-            "SELECT f.id, f.name, f.description, f.release_date, f.duration, f.director" +
+            "SELECT f.id, f.name, f.description, f.release_date, f.duration, f.director, " +
                     "f.rating_id, r.name AS rating_name, " +
                     "g.genre_id, gr.name AS genre_name " +
                     "FROM films AS f " +

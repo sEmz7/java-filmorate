@@ -1,5 +1,7 @@
 package ru.yandex.practicum.filmorate.db;
 
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -77,23 +79,23 @@ class FilmDbStorageTest {
                 .build();
 
         User user1 = User.builder()
-                .email("test@example.com")
-                .login("testlogin")
-                .name("Test User")
+                .email("test@example1.com")
+                .login("testlogin1")
+                .name("Test User1")
                 .birthday(LocalDate.of(1990, 1, 1))
                 .build();
 
         User user2 = User.builder()
-                .email("test@example.com")
-                .login("testlogin")
-                .name("Test User")
+                .email("test@example2.com")
+                .login("testlogin2")
+                .name("Test User2")
                 .birthday(LocalDate.of(1990, 1, 1))
                 .build();
 
         User user3 = User.builder()
-                .email("test@example.com")
-                .login("testlogin")
-                .name("Test User")
+                .email("test@example3.com")
+                .login("testlogin3")
+                .name("Test User3")
                 .birthday(LocalDate.of(1990, 1, 1))
                 .build();
 
@@ -103,9 +105,9 @@ class FilmDbStorageTest {
         User createdUser2 = userStorage.create(user2);
         User createdUser3 = userStorage.create(user3);
 
-        likesStorage.addLike(2, 1);
-        likesStorage.addLike(2, 2);
-        likesStorage.addLike(1, 3);
+        likesStorage.addLike(createdFilm2.getId(), createdUser1.getId());
+        likesStorage.addLike(createdFilm2.getId(), createdUser2.getId());
+        likesStorage.addLike(createdFilm1.getId(), createdUser3.getId());
 
         List<Film> searchByDirectorFilm = filmStorage.search("спот", List.of("director"));
         List<Film> searchByNameFilm = filmStorage.search("крад", List.of("title"));
