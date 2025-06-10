@@ -87,4 +87,23 @@ public class FilmService {
     public Film findById(long id) {
         return filmStorage.findFilmById(id);
     }
+
+    public List<Film> search(String query, List<String> by) {
+        if (by.size() > 2) {
+            throw new InvalidFilmInputException("Invalid number of parameters");
+        }
+
+        String p1 = "director";
+        String p2 = "title";
+
+        if (!by.getFirst().equals(p1) || !by.getFirst().equals(p2)) {
+            throw new InvalidFilmInputException("Invalid parameter " + by.getFirst());
+        }
+
+        if (by.size() == 2 && !by.getLast().equals(p2)) {
+            throw new InvalidFilmInputException("Invalid parameter " + by.getLast());
+        }
+
+        return filmStorage.search(query, by);
+    }
 }

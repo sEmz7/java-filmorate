@@ -31,6 +31,11 @@ public class FilmController {
         return filmService.findById(id);
     }
 
+    @GetMapping("/search")
+    public Collection<Film> search(@RequestParam String query, @RequestParam List<String> by) {
+        return filmService.search(query, by);
+    }
+
     @PostMapping
     public Film create(@Valid @RequestBody Film film) {
         return filmService.create(film);
