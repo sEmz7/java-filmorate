@@ -2,6 +2,8 @@ package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
@@ -37,6 +39,12 @@ public class FilmController {
     @PutMapping
     public Film update(@Valid @RequestBody Film newFilm) {
         return filmService.update(newFilm);
+    }
+
+    @DeleteMapping("/{filmId}")
+    public ResponseEntity<Film> delete(@PathVariable long filmId) {
+        Film deletedFilm = filmService.delete(filmId);
+        return ResponseEntity.status(HttpStatus.OK).body(deletedFilm);
     }
 
     @GetMapping("/popular")
