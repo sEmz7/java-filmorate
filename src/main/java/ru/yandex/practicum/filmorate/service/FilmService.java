@@ -50,6 +50,10 @@ public class FilmService {
         return filmStorage.update(newFilm);
     }
 
+    public Film delete(long filmId) {
+        return filmStorage.delete(filmId);
+    }
+
     public Film addLike(long filmId, long userId) {
         Film film = filmStorage.findFilmById(filmId);
         User user = userStorage.getUserById(userId)

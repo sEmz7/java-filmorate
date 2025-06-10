@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.storage.db;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Component;
@@ -19,6 +20,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.*;
 
+@Slf4j
 @Component("filmDb")
 @RequiredArgsConstructor
 public class FilmDbStorage implements FilmStorage {
@@ -44,6 +46,7 @@ public class FilmDbStorage implements FilmStorage {
                     "WHERE f.id = ?";
     private static final String UPDATE =
             "UPDATE films SET name = ?, description = ?, release_date = ?, duration = ? WHERE id = ?;";
+    private static final String DELETE = "DELETE FROM films WHERE id = ?";
 
 
     @Override
@@ -79,8 +82,14 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public Film delete(long id) {
-        return null;
+    public Film delete(long filmId) {
+        Film film = findFilmById(filmId);
+        if (film == null) {
+            log.warn("Фильм с id={} не найден.", filmId);
+            throw new NotFoundException("Фильм с id=" + filmId + " не найден.");
+        }
+        jdbc.update(DELETE, filmId);
+        return film;
     }
 
     @Override
