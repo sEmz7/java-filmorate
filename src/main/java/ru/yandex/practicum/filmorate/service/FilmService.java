@@ -87,4 +87,20 @@ public class FilmService {
     public Film findById(long id) {
         return filmStorage.findFilmById(id);
     }
+
+    public List<Film> findByDirectorAndSort(long directorId, String sortBy) {
+        List<Film> films;
+        if (sortBy.equals("year")) {
+            films = filmStorage.findFilmsByDirectorSortYear(directorId);
+        } else if (sortBy.equals("likes")) {
+            films = filmStorage.findFilmsByDirectorSortLikes(directorId);
+        } else {
+            throw new InvalidFilmInputException("Параметр sortBy принимает [year,likes]");
+        }
+
+        if (films.isEmpty()) {
+            throw new NotFoundException("Нет фильма с director_id=" + directorId);
+        }
+        return films;
+    }
 }

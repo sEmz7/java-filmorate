@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.mapper;
 
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Rating;
@@ -22,6 +23,7 @@ public class FilmRowMapper implements RowMapper<Film> {
                 .duration(rs.getInt("duration"))
                 .mpa(new Rating(rs.getLong("rating_id"), rs.getString("rating_name")))
                 .genres(new ArrayList<>())
+                .director(new Director(rs.getLong("director_id"), rs.getString("director_name")))
                 .build();
 
         long genreId = rs.getLong("genre_id");

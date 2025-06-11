@@ -5,16 +5,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
-import ru.yandex.practicum.filmorate.mapper.FilmRowMapper;
-import ru.yandex.practicum.filmorate.mapper.GenreRowMapper;
-import ru.yandex.practicum.filmorate.mapper.LikeRowMapper;
-import ru.yandex.practicum.filmorate.mapper.RatingRowMapper;
+import ru.yandex.practicum.filmorate.mapper.*;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Rating;
-import ru.yandex.practicum.filmorate.storage.db.FilmDbStorage;
-import ru.yandex.practicum.filmorate.storage.db.GenresDbStorage;
-import ru.yandex.practicum.filmorate.storage.db.LikesDbStorage;
-import ru.yandex.practicum.filmorate.storage.db.RatingDbStorage;
+import ru.yandex.practicum.filmorate.storage.db.*;
 
 import java.time.LocalDate;
 import java.util.Optional;
@@ -23,7 +18,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @JdbcTest
 @AutoConfigureTestDatabase
-@Import({FilmDbStorage.class, FilmRowMapper.class,
+@Import({DirectorsDbStorage.class, DirectorRowMapper.class,
+        FilmDbStorage.class, FilmRowMapper.class,
         GenresDbStorage.class, GenreRowMapper.class,
         RatingDbStorage.class, RatingRowMapper.class,
         LikesDbStorage.class, LikeRowMapper.class})
@@ -32,14 +28,19 @@ class FilmDbStorageTest {
     @Autowired
     private FilmDbStorage filmStorage;
 
+    @Autowired
+    DirectorsDbStorage directorsStorage;
+
     @Test
     void testFindFilmById() {
+        Director director = directorsStorage.create(new Director("director"));
         Film film = Film.builder()
                 .name("test")
                 .description("test")
                 .releaseDate(LocalDate.of(2005, 1, 1))
                 .duration(133)
                 .mpa(new Rating(1L, "G"))
+                .director(director)
                 .build();
 
         Film createdFilm = filmStorage.create(film);
@@ -54,12 +55,14 @@ class FilmDbStorageTest {
 
     @Test
     void testCreateFilm() {
+        Director director = directorsStorage.create(new Director("director"));
         Film newFilm = Film.builder()
                 .name("Inception")
                 .description("A mind-bending thriller")
                 .releaseDate(LocalDate.of(2010, 7, 16))
                 .duration(148)
                 .mpa(new Rating(1L, "G"))
+                .director(director)
                 .build();
 
         Film createdFilm = filmStorage.create(newFilm);
@@ -78,12 +81,14 @@ class FilmDbStorageTest {
 
     @Test
     void testUpdateFilm() {
+        Director director = directorsStorage.create(new Director("director"));
         Film film = Film.builder()
                 .name("Original Title")
                 .description("Original Description")
                 .releaseDate(LocalDate.of(2000, 1, 1))
                 .duration(120)
                 .mpa(new Rating(1L, "G"))
+                .director(director)
                 .build();
 
         Film createdFilm = filmStorage.create(film);
