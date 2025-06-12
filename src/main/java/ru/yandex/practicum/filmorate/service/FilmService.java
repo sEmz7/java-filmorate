@@ -13,6 +13,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
+import ru.yandex.practicum.filmorate.storage.db.DirectorsDbStorage;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -25,11 +26,15 @@ import java.util.List;
 public class FilmService {
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
+    private final DirectorsDbStorage directorsDbStorage;
 
     @Autowired
-    public FilmService(@Qualifier("filmDb") FilmStorage filmStorage, @Qualifier("userDb") UserStorage userStorage) {
+    public FilmService(@Qualifier("filmDb") FilmStorage filmStorage,
+                       @Qualifier("userDb") UserStorage userStorage,
+                       DirectorsDbStorage directorsDbStorage) {
         this.filmStorage = filmStorage;
         this.userStorage = userStorage;
+        this.directorsDbStorage = directorsDbStorage;
     }
 
     public Collection<Film> findAll() {

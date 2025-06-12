@@ -34,7 +34,7 @@ public class FilmDbStorage implements FilmStorage {
     private static final String FIND_ALL = "SELECT f.id, f.name, f.description, f.release_date, f.duration, " +
             "f.rating_id, r.name AS rating_name " +
             "FROM films AS f " +
-            "INNER JOIN ratings AS r ON f.rating_id = r.rating_id ";
+            "INNER JOIN ratings AS r ON f.rating_id = r.rating_id;";
     private static final String CREATE_FILM =
             "INSERT INTO films(name, description, release_date, duration, rating_id) " + "VALUES (?, ?, ?, ?, ?);";
     private static final String FIND_BY_ID =
@@ -48,10 +48,10 @@ public class FilmDbStorage implements FilmStorage {
                     "LEFT JOIN genres AS gr ON g.genre_id = gr.genre_id " +
                     "LEFT JOIN film_directors AS fd ON f.id = fd.film_id " +
                     "LEFT JOIN directors AS d ON fd.director_id = d.director_id " +
-                    "WHERE f.id = ?";
+                    "WHERE f.id = ?;";
     private static final String UPDATE =
             "UPDATE films SET name = ?, description = ?, release_date = ?, duration = ? WHERE id = ?;";
-    private static final String DELETE = "DELETE FROM films WHERE id = ?";
+    private static final String DELETE = "DELETE FROM films WHERE id = ?;";
     private static final String FIND_BY_DIRECTOR_SORT_BY_YEAR =
             "SELECT f.id, f.name, f.description, f.release_date, f.duration, " +
                     "f.rating_id, r.name AS rating_name, " +
@@ -63,9 +63,9 @@ public class FilmDbStorage implements FilmStorage {
                     "LEFT JOIN genres AS gr ON g.genre_id = gr.genre_id " +
                     "LEFT JOIN film_directors AS fd ON f.id = fd.film_id " +
                     "LEFT JOIN directors AS d ON fd.director_id = d.director_id " +
-                    "WHERE f.director_id = ? " +
+                    "WHERE d.director_id = ? " +
                     "GROUP BY f.id " +
-                    "ORDER BY YEAR(f.release_date) ";
+                    "ORDER BY YEAR(f.release_date);";
     private static final String FIND_BY_DIRECTOR_SORT_BY_LIKES =
             "SELECT f.id, f.name, f.description, f.release_date, f.duration, " +
                     "f.rating_id, r.name AS rating_name, " +
@@ -78,9 +78,9 @@ public class FilmDbStorage implements FilmStorage {
                     "LEFT JOIN film_directors AS fd ON f.id = fd.film_id " +
                     "LEFT JOIN directors AS d ON fd.director_id = d.director_id " +
                     "LEFT JOIN likes AS l ON f.id = l.film_id " +
-                    "WHERE f.director_id = ? " +
+                    "WHERE d.director_id = ? " +
                     "GROUP BY f.id " +
-                    "ORDER BY COUNT(l.id) DESC";
+                    "ORDER BY COUNT(l.id) DESC;";
 
 
     @Override
