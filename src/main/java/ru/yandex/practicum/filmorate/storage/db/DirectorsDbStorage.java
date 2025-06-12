@@ -29,7 +29,6 @@ public class DirectorsDbStorage {
     private static final String DELETE_FILM_DIRECTORS = "DELETE FROM film_directors WHERE film_id = ?";
 
     public void saveFilmDirectors(long filmId, List<Director> directors) {
-        jdbc.update(DELETE_FILM_DIRECTORS, filmId);
         for (Director director : directors) {
             findById(director.getId());
             jdbc.update(SAVE_FILM_DIRECTORS, filmId, director.getId());
