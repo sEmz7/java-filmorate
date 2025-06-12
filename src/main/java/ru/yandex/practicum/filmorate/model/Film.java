@@ -40,5 +40,5 @@ public class Film {
 
     private Rating mpa;
 
-    private Director director;
+    private List<Director> directors;
 }

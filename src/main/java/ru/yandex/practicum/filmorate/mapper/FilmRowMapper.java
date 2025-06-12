@@ -23,12 +23,19 @@ public class FilmRowMapper implements RowMapper<Film> {
                 .duration(rs.getInt("duration"))
                 .mpa(new Rating(rs.getLong("rating_id"), rs.getString("rating_name")))
                 .genres(new ArrayList<>())
-                .director(new Director(rs.getLong("director_id"), rs.getString("director_name")))
+                .directors(new ArrayList<>())
                 .build();
 
         long genreId = rs.getLong("genre_id");
-        if (!rs.wasNull()) {
-            film.getGenres().add(new Genre(genreId, rs.getString("genre_name")));
+        String genre = rs.getString("genre_name");
+        if (genre != null) {
+            film.getGenres().add(new Genre(genreId, genre));
+        }
+
+        long directorId = rs.getLong("director_id");
+        String director = rs.getString("director_name");
+        if (director != null) {
+            film.getDirectors().add(new Director(directorId, director));
         }
 
         return film;
