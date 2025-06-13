@@ -29,10 +29,7 @@ public class ReviewService {
             log.warn("Фильм с id={} не найден", review.getFilmId());
             throw new NotFoundException("Фильм с id=" + review.getFilmId() + " не найден.");
         }
-        if (userStorage.getUserById(review.getUserId()).isEmpty()) {
-            log.warn("Пользователь с id={} не найден.", review.getUserId());
-            throw new NotFoundException("Пользователь с id=" + review.getUserId() + " не найден.");
-        }
+        checkUserExistence(review.getUserId());
         return reviewStorage.create(review);
     }
 
@@ -61,6 +58,29 @@ public class ReviewService {
             throw new NotFoundException("Нет фильма с id=" + filmId);
         }
         return reviewStorage.findAllByFilmIdAndCount(filmId, count);
+    }
+
+    public Review likeReview(long reviewId, long userId) {
+        checkUserExistence(userId);
+        Review review = findReviewOrThrow(reviewId);
+        review.setUseful(review.getUseful() + 1);
+        reviewStorage.likeReview(reviewId, userId, review.getUseful());
+        return review;
+    }
+
+    public Review dislikeReview(long reviewId, long userId) {
+        checkUserExistence(userId);
+        Review review = findReviewOrThrow(reviewId);
+        review.setUseful(review.getUseful() - 1);
+        reviewStorage.dislikeReview(reviewId, userId, review.getUseful());
+        return review;
+    }
+
+    private void checkUserExistence(long userId) {
+        if (userStorage.getUserById(userId).isEmpty()) {
+            log.warn("Пользователь с id={} не найден.", userId);
+            throw new NotFoundException("Нет пользователя с id=" + userId);
+        }
     }
 
     private Review findReviewOrThrow(long id) {

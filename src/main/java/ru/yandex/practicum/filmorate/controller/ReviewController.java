@@ -48,4 +48,28 @@ public class ReviewController {
         Collection<Review> reviews = reviewService.findCountReviewsByFilmId(filmId, count);
         return ResponseEntity.ok().body(reviews);
     }
+
+    @PutMapping("/{id}/like/{userId}")
+    public ResponseEntity<Review> likeReview(@PathVariable("id") long reviewId, @PathVariable long userId) {
+        Review review = reviewService.likeReview(reviewId, userId);
+        return ResponseEntity.ok().body(review);
+    }
+
+    @PutMapping("/{id}/dislike/{userId}")
+    public ResponseEntity<Review> dislikeReview(@PathVariable("id") long reviewId, @PathVariable long userId) {
+        Review review = reviewService.dislikeReview(reviewId, userId);
+        return ResponseEntity.ok().body(review);
+    }
+
+    @DeleteMapping("/{id}/like/{userId}")
+    public ResponseEntity<Review> removeLike(@PathVariable("id") long reviewId, @PathVariable long userId) {
+        Review review = reviewService.dislikeReview(reviewId, userId);
+        return ResponseEntity.ok().body(review);
+    }
+
+    @DeleteMapping("/{id}/dislike/{userId}")
+    public ResponseEntity<Review> removeDislike(@PathVariable("id") long reviewId, @PathVariable long userId) {
+        Review review = reviewService.likeReview(reviewId, userId);
+        return ResponseEntity.ok().body(review);
+    }
 }

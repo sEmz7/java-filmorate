@@ -22,6 +22,10 @@ public class ReviewDbStorage extends BaseDbStorage {
     private static final String FIND_ALL_BY_COUNT = "SELECT * FROM reviews ORDER BY useful DESC LIMIT ?";
     private static final String FIND_ALL_BY_FILM_ID_AND_COUNT =
             "SELECT * FROM reviews WHERE film_id = ? ORDER BY useful DESC LIMIT ?";
+    private static final String LIKE_REVIEW = "INSERT INTO review_likes (review_id, user_id) VALUES (?, ?)";
+    private static final String DISLIKE_REVIEW =
+            "DELETE FROM review_likes WHERE review_id = ? AND user_id = ?";
+    private static final String UPDATE_USEFUL = "UPDATE reviews SET useful = ? WHERE review_id = ?";
 
     @Autowired
     public ReviewDbStorage(JdbcTemplate jdbc, ReviewRowMapper reviewRowMapper) {
@@ -69,5 +73,15 @@ public class ReviewDbStorage extends BaseDbStorage {
 
     public Collection<Review> findAllByFilmIdAndCount(long filmId, int count) {
         return jdbc.query(FIND_ALL_BY_FILM_ID_AND_COUNT, reviewRowMapper, filmId, count);
+    }
+
+    public void likeReview(long reviewId, long userId, int useful) {
+        jdbc.update(LIKE_REVIEW, reviewId, userId);
+        jdbc.update(UPDATE_USEFUL, useful, reviewId);
+    }
+
+    public void dislikeReview(long reviewId, long userId, int useful) {
+        jdbc.update(DISLIKE_REVIEW, reviewId, userId);
+        jdbc.update(UPDATE_USEFUL, useful, reviewId);
     }
 }
