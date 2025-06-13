@@ -1,22 +1,16 @@
 package ru.yandex.practicum.filmorate.storage.db;
 
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.exception.InternalServerException;
 import ru.yandex.practicum.filmorate.mapper.ReviewRowMapper;
 import ru.yandex.practicum.filmorate.model.Review;
 
-import java.sql.PreparedStatement;
-import java.sql.Statement;
 import java.util.Collection;
 import java.util.Optional;
 
 @Component
-@RequiredArgsConstructor
-public class ReviewDbStorage {
-    private final JdbcTemplate jdbc;
+public class ReviewDbStorage extends BaseDbStorage {
     private final ReviewRowMapper reviewRowMapper;
     private static final String FIND_ALL = "SELECT * FROM reviews";
     private static final String CREATE =
@@ -28,6 +22,12 @@ public class ReviewDbStorage {
     private static final String FIND_ALL_BY_COUNT = "SELECT * FROM reviews ORDER BY useful DESC LIMIT ?";
     private static final String FIND_ALL_BY_FILM_ID_AND_COUNT =
             "SELECT * FROM reviews WHERE film_id = ? ORDER BY useful DESC LIMIT ?";
+
+    @Autowired
+    public ReviewDbStorage(JdbcTemplate jdbc, ReviewRowMapper reviewRowMapper) {
+        super(jdbc);
+        this.reviewRowMapper = reviewRowMapper;
+    }
 
     public Collection<Review> findAll() {
         return jdbc.query(FIND_ALL, reviewRowMapper);
@@ -69,24 +69,5 @@ public class ReviewDbStorage {
 
     public Collection<Review> findAllByFilmIdAndCount(long filmId, int count) {
         return jdbc.query(FIND_ALL_BY_FILM_ID_AND_COUNT, reviewRowMapper, filmId, count);
-    }
-
-    private long insert(String query, Object... params) {
-        GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
-        jdbc.update(connection -> {
-            PreparedStatement ps = connection
-                    .prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
-            for (int idx = 0; idx < params.length; idx++) {
-                ps.setObject(idx + 1, params[idx]);
-            }
-            return ps;
-        }, keyHolder);
-
-        Integer id = keyHolder.getKeyAs(Integer.class);
-
-        if (id != null) {
-            return id;
-        }
-        throw new InternalServerException("Не удалось сохранить данные");
     }
 }
