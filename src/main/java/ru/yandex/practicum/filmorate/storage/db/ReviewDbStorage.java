@@ -37,7 +37,7 @@ public class ReviewDbStorage {
                 review.getUserId(),
                 review.getFilmId(),
                 0);
-        review.setId(id);
+        review.setReviewId(id);
         review.setUseful(0);
         return review;
     }
@@ -48,7 +48,7 @@ public class ReviewDbStorage {
                 review.getIsPositive(),
                 review.getUserId(),
                 review.getFilmId(),
-                review.getId());
+                review.getReviewId());
         return review;
     }
 

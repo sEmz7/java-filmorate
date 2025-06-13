@@ -8,7 +8,7 @@ import lombok.Data;
 @Data
 @Builder
 public class Review {
-    private Long id;
+    private Long reviewId;
 
     @NotNull
     @NotBlank

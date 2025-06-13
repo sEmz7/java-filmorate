@@ -37,8 +37,9 @@ public class ReviewService {
     }
 
     public Review update(Review review) {
-        Review foundReview = findReviewOrThrow(review.getId());
-        review.setId(foundReview.getId());
+        Review foundReview = findReviewOrThrow(review.getReviewId());
+        review.setReviewId(foundReview.getReviewId());
+        review.setUseful(foundReview.getUseful());
         return reviewStorage.update(review);
     }
 
