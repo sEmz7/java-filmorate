@@ -52,6 +52,17 @@ public class ReviewService {
         return findReviewOrThrow(id);
     }
 
+    public Collection<Review> findCountReviewsByFilmId(Long filmId, int count) {
+        if (filmId == null) {
+            return reviewStorage.findAllByCount(count);
+        }
+        if (filmStorage.findFilmById(filmId) == null) {
+            log.warn("Фильм с id={} не найден.", filmId);
+            throw new NotFoundException("Нет фильма с id=" + filmId);
+        }
+        return reviewStorage.findAllByFilmIdAndCount(filmId, count);
+    }
+
     private Review findReviewOrThrow(long id) {
         Optional<Review> optionalReview = reviewStorage.findById(id);
         if (optionalReview.isEmpty()) {

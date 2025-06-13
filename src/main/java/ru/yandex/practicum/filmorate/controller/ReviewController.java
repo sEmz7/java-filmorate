@@ -17,12 +17,6 @@ import java.util.Collection;
 public class ReviewController {
     private final ReviewService reviewService;
 
-    @GetMapping
-    public ResponseEntity<Collection<Review>> findAll() {
-        Collection<Review> reviewCollection = reviewService.findAll();
-        return ResponseEntity.status(HttpStatus.OK).body(reviewCollection);
-    }
-
     @PostMapping
     public ResponseEntity<Review> create(@Valid @RequestBody Review review) {
         Review createdReview = reviewService.create(review);
@@ -45,5 +39,13 @@ public class ReviewController {
     public ResponseEntity<Review> findById(@PathVariable @Min(1) Long id) {
         Review review = reviewService.findById(id);
         return ResponseEntity.status(HttpStatus.OK).body(review);
+    }
+
+    @GetMapping
+    public ResponseEntity<Collection<Review>> findCountReviewsByFilmId(
+            @RequestParam Long filmId,
+            @RequestParam(defaultValue = "10") int count) {
+        Collection<Review> reviews = reviewService.findCountReviewsByFilmId(filmId, count);
+        return ResponseEntity.ok().body(reviews);
     }
 }
