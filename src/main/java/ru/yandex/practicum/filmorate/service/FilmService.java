@@ -13,6 +13,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
+import ru.yandex.practicum.filmorate.storage.db.DirectorsDbStorage;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -25,11 +26,15 @@ import java.util.List;
 public class FilmService {
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
+    private final DirectorsDbStorage directorsDbStorage;
 
     @Autowired
-    public FilmService(@Qualifier("filmDb") FilmStorage filmStorage, @Qualifier("userDb") UserStorage userStorage) {
+    public FilmService(@Qualifier("filmDb") FilmStorage filmStorage,
+                       @Qualifier("userDb") UserStorage userStorage,
+                       DirectorsDbStorage directorsDbStorage) {
         this.filmStorage = filmStorage;
         this.userStorage = userStorage;
+        this.directorsDbStorage = directorsDbStorage;
     }
 
     public Collection<Film> findAll() {
@@ -86,5 +91,21 @@ public class FilmService {
 
     public Film findById(long id) {
         return filmStorage.findFilmById(id);
+    }
+
+    public List<Film> findByDirectorAndSort(long directorId, String sortBy) {
+        List<Film> films;
+        if (sortBy.equals("year")) {
+            films = filmStorage.findFilmsByDirectorSortYear(directorId);
+        } else if (sortBy.equals("likes")) {
+            films = filmStorage.findFilmsByDirectorSortLikes(directorId);
+        } else {
+            throw new InvalidFilmInputException("Параметр sortBy принимает [year,likes]");
+        }
+
+        if (films.isEmpty()) {
+            throw new NotFoundException("Нет фильма с director_id=" + directorId);
+        }
+        return films;
     }
 }
