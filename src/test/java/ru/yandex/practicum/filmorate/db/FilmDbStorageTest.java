@@ -62,12 +62,14 @@ class FilmDbStorageTest {
 
     @Test
     void searchTest() {
+        Director director1 = directorsDbStorage.create(new Director("Энг Ли"));
+        Director director2 = directorsDbStorage.create(new Director("Фрэнк Спотниц"));
         Film film1 = Film.builder()
                 .name("Крадущийся тигр, затаившийся дракон")
                 .description("test")
                 .releaseDate(LocalDate.of(2005, 1, 1))
                 .duration(133)
-                .director("Энг Ли")
+                .directors(List.of(director1))
                 .mpa(new Rating(1L, "G"))
                 .build();
 
@@ -76,7 +78,7 @@ class FilmDbStorageTest {
                 .description("test")
                 .releaseDate(LocalDate.of(2005, 1, 1))
                 .duration(133)
-                .director("Фрэнк Спотниц")
+                .directors(List.of(director2))
                 .mpa(new Rating(1L, "G"))
                 .build();
 
@@ -103,13 +105,13 @@ class FilmDbStorageTest {
 
         Film createdFilm1 = filmStorage.create(film1);
         Film createdFilm2 = filmStorage.create(film2);
-        User createdUser1 = userStorage.create(user1);
-        User createdUser2 = userStorage.create(user2);
-        User createdUser3 = userStorage.create(user3);
+        User createdUser1 = userDbStorage.create(user1);
+        User createdUser2 = userDbStorage.create(user2);
+        User createdUser3 = userDbStorage.create(user3);
 
-        likesStorage.addLike(createdFilm2.getId(), createdUser1.getId());
-        likesStorage.addLike(createdFilm2.getId(), createdUser2.getId());
-        likesStorage.addLike(createdFilm1.getId(), createdUser3.getId());
+        likesDbStorage.addLike(createdFilm2.getId(), createdUser1.getId());
+        likesDbStorage.addLike(createdFilm2.getId(), createdUser2.getId());
+        likesDbStorage.addLike(createdFilm1.getId(), createdUser3.getId());
 
         List<Film> searchByDirectorFilm = filmStorage.search("спот", List.of("director"));
         List<Film> searchByNameFilm = filmStorage.search("крад", List.of("title"));

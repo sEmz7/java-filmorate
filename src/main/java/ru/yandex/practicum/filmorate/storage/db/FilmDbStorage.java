@@ -81,41 +81,52 @@ public class FilmDbStorage implements FilmStorage {
                     "WHERE d.director_id = ? " +
                     "GROUP BY f.id " +
                     "ORDER BY COUNT(l.id) DESC;";
-    private static final String SEARCH_BY_DIRECTOR = "SELECT f.id, f.name, f.description, f.release_date, f.duration, " +
-            "f.director, f.rating_id, r.name AS rating_name, " +
-            "g.genre_id, gr.name AS genre_name " +
+    private static final String SEARCH_BY_DIRECTOR =
+            "SELECT f.id, f.name, f.description, f.release_date, f.duration, " +
+            "f.rating_id, r.name AS rating_name, " +
+            "g.genre_id, gr.name AS genre_name, " +
+            "fd.director_id, d.name AS director_name " +
             "FROM films AS f " +
             "INNER JOIN ratings AS r ON f.rating_id = r.rating_id " +
             "LEFT JOIN film_genres AS g ON f.id = g.film_id " +
             "LEFT JOIN genres AS gr ON g.genre_id = gr.genre_id " +
+            "LEFT JOIN film_directors AS fd ON f.id = fd.film_id " +
+            "LEFT JOIN directors AS d ON fd.director_id = d.director_id " +
             "LEFT JOIN likes AS l ON f.id = l.film_id " +
-            "WHERE LOWER(f.director) LIKE LOWER(CONCAT('%', ?, '%')) " +
+            "WHERE LOWER(d.name) LIKE LOWER(CONCAT('%', ?, '%')) " +
             "GROUP BY f.id " +
             "ORDER BY COUNT(l.id) DESC";
-    private static final String SEARCH_BY_NAME = "SELECT f.id, f.name, f.description, f.release_date, f.duration, " +
-            "f.director, f.rating_id, r.name AS rating_name, " +
-            "g.genre_id, gr.name AS genre_name " +
+    private static final String SEARCH_BY_NAME =
+            "SELECT f.id, f.name, f.description, f.release_date, f.duration, " +
+            "f.rating_id, r.name AS rating_name, " +
+            "g.genre_id, gr.name AS genre_name, " +
+            "fd.director_id, d.name AS director_name " +
             "FROM films AS f " +
             "INNER JOIN ratings AS r ON f.rating_id = r.rating_id " +
             "LEFT JOIN film_genres AS g ON f.id = g.film_id " +
             "LEFT JOIN genres AS gr ON g.genre_id = gr.genre_id " +
+            "LEFT JOIN film_directors AS fd ON f.id = fd.film_id " +
+            "LEFT JOIN directors AS d ON fd.director_id = d.director_id " +
             "LEFT JOIN likes AS l ON f.id = l.film_id " +
             "WHERE LOWER(f.name) LIKE LOWER(CONCAT('%', ?, '%')) " +
             "GROUP BY f.id " +
             "ORDER BY COUNT(l.id) DESC";
-    private static final String SEARCH_BY_DIRECTOR_AND_NAME = "SELECT f.id, f.name, f.description, f.release_date, f.duration, " +
-            "f.director, f.rating_id, r.name AS rating_name, " +
-            "g.genre_id, gr.name AS genre_name " +
+    private static final String SEARCH_BY_DIRECTOR_AND_NAME =
+            "SELECT f.id, f.name, f.description, f.release_date, f.duration, " +
+            "f.rating_id, r.name AS rating_name, " +
+            "g.genre_id, gr.name AS genre_name, " +
+            "fd.director_id, d.name AS director_name " +
             "FROM films AS f " +
             "INNER JOIN ratings AS r ON f.rating_id = r.rating_id " +
             "LEFT JOIN film_genres AS g ON f.id = g.film_id " +
             "LEFT JOIN genres AS gr ON g.genre_id = gr.genre_id " +
+            "LEFT JOIN film_directors AS fd ON f.id = fd.film_id " +
+            "LEFT JOIN directors AS d ON fd.director_id = d.director_id " +
             "LEFT JOIN likes AS l ON f.id = l.film_id " +
-            "WHERE LOWER(f.director) LIKE LOWER(CONCAT('%', ?, '%')) AND " +
+            "WHERE LOWER(d.name) LIKE LOWER(CONCAT('%', ?, '%')) AND " +
             "LOWER(f.name) LIKE LOWER(CONCAT('%', ?, '%')) " +
             "GROUP BY f.id " +
             "ORDER BY COUNT(l.id) DESC";
-
 
     @Override
     public Collection<Film> findAll() {
