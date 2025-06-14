@@ -18,6 +18,10 @@ public interface FilmStorage {
 
     Film findFilmById(long id);
 
+    List<Film> findFilmsByDirectorSortYear(long id);
+
+    List<Film> findFilmsByDirectorSortLikes(long id);
+
     List<Like> findFilmLikes(long id);
 
     void addLike(long filmId, long userId);
