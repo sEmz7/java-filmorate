@@ -4,22 +4,17 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.exception.InternalServerException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
-import java.sql.PreparedStatement;
-import java.sql.Statement;
 import java.util.Collection;
 import java.util.Optional;
 
 @Component("userDb")
 @Slf4j
-public class UserDbStorage implements UserStorage {
-    private final JdbcTemplate jdbc;
+public class UserDbStorage extends BaseDbStorage implements UserStorage {
     private final RowMapper<User> userRowMapper;
     private static final String FIND_ALL = "SELECT * FROM users;";
     private static final String CREATE_USER =
@@ -32,7 +27,7 @@ public class UserDbStorage implements UserStorage {
 
     @Autowired
     public UserDbStorage(JdbcTemplate jdbc, RowMapper<User> userRowMapper) {
-        this.jdbc = jdbc;
+        super(jdbc);
         this.userRowMapper = userRowMapper;
     }
 
@@ -72,24 +67,5 @@ public class UserDbStorage implements UserStorage {
     @Override
     public Optional<User> getUserById(long id) {
         return jdbc.query(FIND_BY_ID, userRowMapper, id).stream().findFirst();
-    }
-
-    private long insert(String query, Object... params) {
-        GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
-        jdbc.update(connection -> {
-            PreparedStatement ps = connection
-                    .prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
-            for (int idx = 0; idx < params.length; idx++) {
-                ps.setObject(idx + 1, params[idx]);
-            }
-            return ps;
-        }, keyHolder);
-
-        Integer id = keyHolder.getKeyAs(Integer.class);
-
-        if (id != null) {
-            return id;
-        }
-        throw new InternalServerException("Не удалось сохранить данные");
     }
 }

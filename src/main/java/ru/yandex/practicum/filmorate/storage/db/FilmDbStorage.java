@@ -1,11 +1,9 @@
 package ru.yandex.practicum.filmorate.storage.db;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.exception.InternalServerException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.FilmRowMapper;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -14,17 +12,13 @@ import ru.yandex.practicum.filmorate.model.Like;
 import ru.yandex.practicum.filmorate.model.Rating;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.*;
 
 @Slf4j
 @Component("filmDb")
-@RequiredArgsConstructor
-public class FilmDbStorage implements FilmStorage {
-    private final JdbcTemplate jdbc;
+public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
     private final FilmRowMapper filmRowMapper;
     private final GenresDbStorage genresDbStorage;
     private final RatingDbStorage ratingDbStorage;
@@ -82,6 +76,15 @@ public class FilmDbStorage implements FilmStorage {
                     "GROUP BY f.id " +
                     "ORDER BY COUNT(l.id) DESC;";
 
+    @Autowired
+    public FilmDbStorage(JdbcTemplate jdbc, FilmRowMapper filmRowMapper, GenresDbStorage genresDbStorage, RatingDbStorage ratingDbStorage, LikesDbStorage likesDbStorage, DirectorsDbStorage directorsDbStorage) {
+        super(jdbc);
+        this.filmRowMapper = filmRowMapper;
+        this.genresDbStorage = genresDbStorage;
+        this.ratingDbStorage = ratingDbStorage;
+        this.likesDbStorage = likesDbStorage;
+        this.directorsDbStorage = directorsDbStorage;
+    }
 
     @Override
     public Collection<Film> findAll() {
@@ -160,26 +163,6 @@ public class FilmDbStorage implements FilmStorage {
     public List<Film> findFilmsByDirectorSortLikes(long id) {
         List<Film> films = jdbc.query(FIND_BY_DIRECTOR_SORT_BY_LIKES, filmRowMapper, id);
         return films;
-    }
-
-
-    private long insert(String query, Object... params) {
-        GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
-        jdbc.update(connection -> {
-            PreparedStatement ps = connection
-                    .prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
-            for (int idx = 0; idx < params.length; idx++) {
-                ps.setObject(idx + 1, params[idx]);
-            }
-            return ps;
-        }, keyHolder);
-
-        Integer id = keyHolder.getKeyAs(Integer.class);
-
-        if (id != null) {
-            return id;
-        }
-        throw new InternalServerException("Не удалось сохранить данные");
     }
 
     @Override
