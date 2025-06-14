@@ -15,6 +15,7 @@ import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component("filmDb")
@@ -75,6 +76,20 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
                     "WHERE d.director_id = ? " +
                     "GROUP BY f.id " +
                     "ORDER BY COUNT(l.id) DESC;";
+    private static final String FIND_COMMON_FILMS =
+            "SELECT f.id, f.name, f.description, f.release_date, f.duration, " +
+                    "f.rating_id, r.name AS rating_name, " +
+                    "g.genre_id, gr.name AS genre_name, " +
+                    "fd.director_id, d.name AS director_name " +
+                    "FROM films AS f " +
+                    "INNER JOIN ratings AS r ON f.rating_id = r.rating_id " +
+                    "LEFT JOIN film_genres AS g ON f.id = g.film_id " +
+                    "LEFT JOIN genres AS gr ON g.genre_id = gr.genre_id " +
+                    "LEFT JOIN film_directors AS fd ON f.id = fd.film_id " +
+                    "LEFT JOIN directors AS d ON fd.director_id = d.director_id " +
+                    "INNER JOIN likes AS l1 ON f.id = l1.film_id AND l1.user_id = ? " +
+                    "INNER JOIN likes AS l2 ON f.id = l2.film_id AND l2.user_id = ? " +
+                    "GROUP BY f.id, g.genre_id, gr.name, fd.director_id, d.name;";
 
     @Autowired
     public FilmDbStorage(JdbcTemplate jdbc, FilmRowMapper filmRowMapper, GenresDbStorage genresDbStorage, RatingDbStorage ratingDbStorage, LikesDbStorage likesDbStorage, DirectorsDbStorage directorsDbStorage) {
@@ -188,5 +203,38 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
                 .releaseDate(resultSet.getDate("release_date").toLocalDate())
                 .duration(resultSet.getInt("duration"))
                 .build();
+    }
+
+    @Override
+    public List<Film> findCommonFilms(long userId, long friendId) {
+        List<Film> partialFilms = jdbc.query(FIND_COMMON_FILMS, filmRowMapper, userId, friendId);
+        Map<Long, Film> filmMap = new LinkedHashMap<>();
+        for (Film film : partialFilms) {
+            filmMap.computeIfAbsent(film.getId(), id -> {
+                Film newFilm = Film.builder()
+                        .id(film.getId())
+                        .name(film.getName())
+                        .description(film.getDescription())
+                        .releaseDate(film.getReleaseDate())
+                        .duration(film.getDuration())
+                        .mpa(film.getMpa())
+                        .genres(new ArrayList<>())
+                        .directors(new ArrayList<>())
+                        .likes(new HashSet<>())
+                        .build();
+                return newFilm;
+            });
+            if (!film.getGenres().isEmpty()) {
+                filmMap.get(film.getId()).getGenres().addAll(film.getGenres());
+            }
+            if (!film.getDirectors().isEmpty()) {
+                filmMap.get(film.getId()).getDirectors().addAll(film.getDirectors());
+            }
+        }
+        for (Film film : filmMap.values()) {
+            List<Like> likes = likesDbStorage.findFilmLikes(film.getId());
+            film.getLikes().addAll(likes.stream().map(Like::getUserId).collect(Collectors.toSet()));
+        }
+        return new ArrayList<>(filmMap.values());
     }
 }
