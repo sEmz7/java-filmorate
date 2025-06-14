@@ -108,4 +108,16 @@ public class FilmService {
         }
         return films;
     }
+
+    public List<Film> findCommonFilms(long userId, long friendId) {
+        userStorage.getUserById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь с id=" + userId + " не найден"));
+        userStorage.getUserById(friendId)
+                .orElseThrow(() -> new NotFoundException("Пользователь с id=" + friendId + " не найден"));
+        List<Film> commonFilms = filmStorage.findCommonFilms(userId, friendId);
+        commonFilms.sort(Comparator.comparingInt((Film film) -> filmStorage.findFilmLikes(film.getId()).size()).reversed());
+        log.debug("Найдено {} общих фильмов для пользователей {} и {}", commonFilms.size(), userId, friendId);
+        return commonFilms;
+    }
 }
+
