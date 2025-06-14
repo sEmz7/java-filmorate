@@ -3,6 +3,8 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import ru.yandex.practicum.filmorate.exception.InvalidUserInputException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.storage.db.FilmDbStorage;
@@ -19,6 +21,9 @@ public class ReviewService {
     private final ReviewDbStorage reviewStorage;
     private final FilmDbStorage filmStorage;
     private final UserDbStorage userStorage;
+    private static final short LIKE_VALUE = 1;
+    private static final short DISLIKE_VALUE = -1;
+    private static final short DISLIKE_VALUE_IF_LIKE_EXISTS = -2;
 
     public Collection<Review> findAll() {
         return reviewStorage.findAll();
@@ -60,19 +65,61 @@ public class ReviewService {
         return reviewStorage.findAllByFilmIdAndCount(filmId, count);
     }
 
+    @Transactional
     public Review likeReview(long reviewId, long userId) {
         checkUserExistence(userId);
         Review review = findReviewOrThrow(reviewId);
-        review.setUseful(review.getUseful() + 1);
+        if (reviewStorage.likeExists(reviewId, userId)) {
+            log.warn("Пользователь с id={} уже поставил лайк на отзыв с id={}", userId, reviewId);
+            throw new InvalidUserInputException("Лайк уже стоит на отзыве с id=" + reviewId);
+        }
+        review.setUseful(review.getUseful() + LIKE_VALUE);
         reviewStorage.likeReview(reviewId, userId, review.getUseful());
         return review;
     }
 
+    @Transactional
     public Review dislikeReview(long reviewId, long userId) {
         checkUserExistence(userId);
         Review review = findReviewOrThrow(reviewId);
-        review.setUseful(review.getUseful() - 1);
+        if (reviewStorage.dislikeExists(reviewId, userId)) {
+            log.warn("Пользователь с id={} уже поставил дизлайк на отзыв с id={}", userId, reviewId);
+            throw new InvalidUserInputException("Пользователь уже поставил дизлайк на отзыв с id=" + reviewId);
+        }
+        if (reviewStorage.likeExists(reviewId, userId)) {
+            review.setUseful(review.getUseful() + DISLIKE_VALUE_IF_LIKE_EXISTS);
+        } else {
+            review.setUseful(review.getUseful() + DISLIKE_VALUE);
+        }
         reviewStorage.dislikeReview(reviewId, userId, review.getUseful());
+        return review;
+    }
+
+    @Transactional
+    public Review removeLike(long reviewId, long userId) {
+        checkUserExistence(userId);
+        Review review = findReviewOrThrow(reviewId);
+        if (!reviewStorage.likeExists(reviewId, userId)) {
+            log.warn("Пользователь с id={} не поставил лайк перед тем как его убрать на отзыв с id={}",
+                    userId, reviewId);
+            throw new InvalidUserInputException("Пользователь еще не поставил лайк на отзыв с id=" + reviewId);
+        }
+        review.setUseful(review.getUseful() + DISLIKE_VALUE);
+        reviewStorage.removeLike(reviewId, userId, review.getUseful());
+        return review;
+    }
+
+    @Transactional
+    public Review removeDislike(long reviewId, long userId) {
+        checkUserExistence(userId);
+        Review review = findReviewOrThrow(reviewId);
+        if (!reviewStorage.dislikeExists(reviewId, userId)) {
+            log.warn("Пользователь с id={} не поставил дизлайк перед тем как его убрать на отзыв с id={}",
+                    userId, reviewId);
+            throw new InvalidUserInputException("Пользователь еще не поставил дизлайк на отзыв с id=" + reviewId);
+        }
+        review.setUseful(review.getUseful() + LIKE_VALUE);
+        reviewStorage.removeDislike(reviewId, userId, review.getUseful());
         return review;
     }
 

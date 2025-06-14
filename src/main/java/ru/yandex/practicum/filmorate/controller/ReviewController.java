@@ -63,13 +63,13 @@ public class ReviewController {
 
     @DeleteMapping("/{id}/like/{userId}")
     public ResponseEntity<Review> removeLike(@PathVariable("id") long reviewId, @PathVariable long userId) {
-        Review review = reviewService.dislikeReview(reviewId, userId);
+        Review review = reviewService.removeLike(reviewId, userId);
         return ResponseEntity.ok().body(review);
     }
 
     @DeleteMapping("/{id}/dislike/{userId}")
     public ResponseEntity<Review> removeDislike(@PathVariable("id") long reviewId, @PathVariable long userId) {
-        Review review = reviewService.likeReview(reviewId, userId);
+        Review review = reviewService.removeDislike(reviewId, userId);
         return ResponseEntity.ok().body(review);
     }
 }
