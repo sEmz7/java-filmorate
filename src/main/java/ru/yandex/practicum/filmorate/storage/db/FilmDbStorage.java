@@ -212,26 +212,6 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
         return films;
     }
 
-
-    private long insert(String query, Object... params) {
-        GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
-        jdbc.update(connection -> {
-            PreparedStatement ps = connection
-                    .prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
-            for (int idx = 0; idx < params.length; idx++) {
-                ps.setObject(idx + 1, params[idx]);
-            }
-            return ps;
-        }, keyHolder);
-
-        Integer id = keyHolder.getKeyAs(Integer.class);
-
-        if (id != null) {
-            return id;
-        }
-        throw new InternalServerException("Не удалось сохранить данные");
-    }
-
     @Override
     public List<Like> findFilmLikes(long id) {
         return likesDbStorage.findFilmLikes(id);
