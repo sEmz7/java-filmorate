@@ -190,7 +190,7 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
             throw new NotFoundException("Нет фильма с id=" + id);
         }
 
-        Film mergedFilm = partialFilms.get(0);
+        Film mergedFilm = partialFilms.getFirst();
         Set<Genre> genreSet = new LinkedHashSet<>();
         for (Film film : partialFilms) {
             genreSet.addAll(film.getGenres());
@@ -202,14 +202,12 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
 
     @Override
     public List<Film> findFilmsByDirectorSortYear(long id) {
-        List<Film> films = jdbc.query(FIND_BY_DIRECTOR_SORT_BY_YEAR, filmRowMapper, id);
-        return films;
+        return jdbc.query(FIND_BY_DIRECTOR_SORT_BY_YEAR, filmRowMapper, id);
     }
 
     @Override
     public List<Film> findFilmsByDirectorSortLikes(long id) {
-        List<Film> films = jdbc.query(FIND_BY_DIRECTOR_SORT_BY_LIKES, filmRowMapper, id);
-        return films;
+        return jdbc.query(FIND_BY_DIRECTOR_SORT_BY_LIKES, filmRowMapper, id);
     }
 
     @Override
