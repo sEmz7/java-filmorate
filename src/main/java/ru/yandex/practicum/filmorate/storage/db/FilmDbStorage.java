@@ -90,6 +90,23 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
                     "INNER JOIN likes AS l1 ON f.id = l1.film_id AND l1.user_id = ? " +
                     "INNER JOIN likes AS l2 ON f.id = l2.film_id AND l2.user_id = ? " +
                     "GROUP BY f.id, g.genre_id, gr.name, fd.director_id, d.name;";
+    private static final String FIND_TOP_FILMS_BY_GENRE_AND_YEAR =
+            "SELECT f.id, f.name, f.description, f.release_date, f.duration, " +
+                    "f.rating_id, r.name AS rating_name, " +
+                    "g.genre_id, gr.name AS genre_name, " +
+                    "fd.director_id, d.name AS director_name " +
+                    "FROM films AS f " +
+                    "INNER JOIN ratings AS r ON f.rating_id = r.rating_id " +
+                    "LEFT JOIN film_genres AS g ON f.id = g.film_id " +
+                    "LEFT JOIN genres AS gr ON g.genre_id = gr.genre_id " +
+                    "LEFT JOIN film_directors AS fd ON f.id = fd.film_id " +
+                    "LEFT JOIN directors AS d ON fd.director_id = d.director_id " +
+                    "LEFT JOIN likes AS l ON f.id = l.film_id " +
+                    "WHERE (? IS NULL OR g.genre_id = ?) " +
+                    "AND (? IS NULL OR EXTRACT(YEAR FROM f.release_date) = ?) " +
+                    "GROUP BY f.id, g.genre_id, gr.name, fd.director_id, d.name " +
+                    "ORDER BY COUNT(l.id) DESC " +
+                    "LIMIT ?";
 
     private static final String SEARCH_BY_DIRECTOR =
             "SELECT f.id, f.name, f.description, f.release_date, f.duration, " +
@@ -264,22 +281,27 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
     @Override
     public List<Film> findCommonFilms(long userId, long friendId) {
         List<Film> partialFilms = jdbc.query(FIND_COMMON_FILMS, filmRowMapper, userId, friendId);
+        return processFilms(partialFilms);
+    }
+
+    @Override
+    public List<Film> findTopFilmsByGenreAndYear(int limit, Long genreId, Integer year) {
+        List<Film> partialFilms = jdbc.query(
+                FIND_TOP_FILMS_BY_GENRE_AND_YEAR,
+                filmRowMapper,
+                genreId, genreId,
+                year, year,
+                limit
+        );
+        return processFilms(partialFilms);
+    }
+
+    private List<Film> processFilms(List<Film> partialFilms) {
         Map<Long, Film> filmMap = new LinkedHashMap<>();
+
         for (Film film : partialFilms) {
-            filmMap.computeIfAbsent(film.getId(), id -> {
-                Film newFilm = Film.builder()
-                        .id(film.getId())
-                        .name(film.getName())
-                        .description(film.getDescription())
-                        .releaseDate(film.getReleaseDate())
-                        .duration(film.getDuration())
-                        .mpa(film.getMpa())
-                        .genres(new ArrayList<>())
-                        .directors(new ArrayList<>())
-                        .likes(new HashSet<>())
-                        .build();
-                return newFilm;
-            });
+            filmMap.computeIfAbsent(film.getId(), id -> createBasicFilm(film));
+
             if (!film.getGenres().isEmpty()) {
                 filmMap.get(film.getId()).getGenres().addAll(film.getGenres());
             }
@@ -287,10 +309,32 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
                 filmMap.get(film.getId()).getDirectors().addAll(film.getDirectors());
             }
         }
+
         for (Film film : filmMap.values()) {
-            List<Like> likes = likesDbStorage.findFilmLikes(film.getId());
-            film.getLikes().addAll(likes.stream().map(Like::getUserId).collect(Collectors.toSet()));
+            addLikesToFilm(film);
         }
+
         return new ArrayList<>(filmMap.values());
+    }
+
+    private Film createBasicFilm(Film film) {
+        return Film.builder()
+                .id(film.getId())
+                .name(film.getName())
+                .description(film.getDescription())
+                .releaseDate(film.getReleaseDate())
+                .duration(film.getDuration())
+                .mpa(film.getMpa())
+                .genres(new ArrayList<>())
+                .directors(new ArrayList<>())
+                .likes(new HashSet<>())
+                .build();
+    }
+
+    private void addLikesToFilm(Film film) {
+        List<Like> likes = likesDbStorage.findFilmLikes(film.getId());
+        film.getLikes().addAll(likes.stream()
+                .map(Like::getUserId)
+                .collect(Collectors.toSet()));
     }
 }

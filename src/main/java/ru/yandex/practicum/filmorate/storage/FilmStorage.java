@@ -31,4 +31,6 @@ public interface FilmStorage {
     List<Film> search(String query, List<String> by);
 
     List<Film> findCommonFilms(long userId, long friendId);
+
+    List<Film> findTopFilmsByGenreAndYear(int limit, Long genreId, Integer year);
 }

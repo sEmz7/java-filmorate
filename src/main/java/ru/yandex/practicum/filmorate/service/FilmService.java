@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 import ru.yandex.practicum.filmorate.exception.InvalidFilmInputException;
-import ru.yandex.practicum.filmorate.exception.InvalidUserInputException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
@@ -16,7 +15,6 @@ import ru.yandex.practicum.filmorate.storage.UserStorage;
 import ru.yandex.practicum.filmorate.storage.db.DirectorsDbStorage;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
@@ -77,16 +75,11 @@ public class FilmService {
         return filmStorage.update(film);
     }
 
-    public List<Film> findBestByLikes(int count) {
-        if (count <= 0) {
-            log.warn("Параметр count меньше нуля.");
-            throw new InvalidUserInputException("Параметр count должен быть положительным числом");
+    public List<Film> findTopFilmsByGenreAndYear(int limit, Long genreId, Integer year) {
+        if (limit <= 0) {
+            throw new InvalidFilmInputException("Параметр count должен быть положительным");
         }
-
-        List<Film> allFilms = new ArrayList<>(filmStorage.findAll());
-        allFilms.sort(Comparator.comparingInt(film -> -filmStorage.findFilmLikes(film.getId()).size()));
-        log.debug("Возвращен список из лучших фильмов.");
-        return allFilms.subList(0, Math.min(count, allFilms.size()));
+        return filmStorage.findTopFilmsByGenreAndYear(limit, genreId, year);
     }
 
     public Film findById(long id) {
