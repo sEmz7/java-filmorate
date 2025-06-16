@@ -119,7 +119,7 @@ class FilmDbStorageTest {
 
         assertThat(searchByNameFilm.getFirst().getName()).isEqualTo(createdFilm2.getName());
         assertThat(searchByNameFilm.getLast().getName()).isEqualTo(createdFilm1.getName());
-        assertThat(searchByDirectorFilm.getFirst().getDirector()).isEqualTo(createdFilm2.getDirector());
+        assertThat(searchByDirectorFilm.getFirst().getDirectors().getFirst()).isEqualTo(createdFilm2.getDirectors().getFirst());
         assertEquals(searchByDirectorAndNameFilm.size(), 2);
     }
 
