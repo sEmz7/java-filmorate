@@ -3,7 +3,6 @@ package ru.yandex.practicum.filmorate.storage.db;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.FilmRowMapper;
@@ -91,24 +90,23 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
                     "INNER JOIN likes AS l1 ON f.id = l1.film_id AND l1.user_id = ? " +
                     "INNER JOIN likes AS l2 ON f.id = l2.film_id AND l2.user_id = ? " +
                     "GROUP BY f.id, g.genre_id, gr.name, fd.director_id, d.name;";
-    private static final String FIND_TOP_FILMS_BY_GENRE_AND_YEAR = """
-    SELECT f.id, f.name, f.description, f.release_date, f.duration, 
-           f.rating_id, r.name AS rating_name,
-           g.genre_id, gr.name AS genre_name,
-           fd.director_id, d.name AS director_name
-    FROM films AS f
-    INNER JOIN ratings AS r ON f.rating_id = r.rating_id
-    LEFT JOIN film_genres AS g ON f.id = g.film_id
-    LEFT JOIN genres AS gr ON g.genre_id = gr.genre_id
-    LEFT JOIN film_directors AS fd ON f.id = fd.film_id
-    LEFT JOIN directors AS d ON fd.director_id = d.director_id
-    LEFT JOIN likes AS l ON f.id = l.film_id
-    WHERE (? IS NULL OR g.genre_id = ?)
-      AND (? IS NULL OR EXTRACT(YEAR FROM f.release_date) = ?)
-    GROUP BY f.id, g.genre_id, gr.name, fd.director_id, d.name
-    ORDER BY COUNT(l.id) DESC
-    LIMIT ?
-    """;
+    private static final String FIND_TOP_FILMS_BY_GENRE_AND_YEAR =
+            "SELECT f.id, f.name, f.description, f.release_date, f.duration, " +
+                    "f.rating_id, r.name AS rating_name, " +
+                    "g.genre_id, gr.name AS genre_name, " +
+                    "fd.director_id, d.name AS director_name " +
+                    "FROM films AS f " +
+                    "INNER JOIN ratings AS r ON f.rating_id = r.rating_id " +
+                    "LEFT JOIN film_genres AS g ON f.id = g.film_id " +
+                    "LEFT JOIN genres AS gr ON g.genre_id = gr.genre_id " +
+                    "LEFT JOIN film_directors AS fd ON f.id = fd.film_id " +
+                    "LEFT JOIN directors AS d ON fd.director_id = d.director_id " +
+                    "LEFT JOIN likes AS l ON f.id = l.film_id " +
+                    "WHERE (? IS NULL OR g.genre_id = ?) " +
+                    "AND (? IS NULL OR EXTRACT(YEAR FROM f.release_date) = ?) " +
+                    "GROUP BY f.id, g.genre_id, gr.name, fd.director_id, d.name " +
+                    "ORDER BY COUNT(l.id) DESC " +
+                    "LIMIT ?";
 
     @Autowired
     public FilmDbStorage(JdbcTemplate jdbc, FilmRowMapper filmRowMapper, GenresDbStorage genresDbStorage, RatingDbStorage ratingDbStorage, LikesDbStorage likesDbStorage, DirectorsDbStorage directorsDbStorage) {
