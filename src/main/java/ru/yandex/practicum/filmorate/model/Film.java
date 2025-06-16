@@ -34,8 +34,6 @@ public class Film {
     @Min(1)
     private int duration;
 
-    private String director;
-
     private Set<Long> likes;
 
     private List<Genre> genres;
