@@ -15,7 +15,6 @@ import ru.yandex.practicum.filmorate.storage.UserStorage;
 import ru.yandex.practicum.filmorate.storage.db.DirectorsDbStorage;
 
 import java.time.LocalDate;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 
@@ -35,7 +34,7 @@ public class FilmService {
         this.directorsDbStorage = directorsDbStorage;
     }
 
-    public Collection<Film> findAll() {
+    public List<Film> findAll() {
         return filmStorage.findAll();
     }
 
@@ -110,12 +109,9 @@ public class FilmService {
         String p1 = "director";
         String p2 = "title";
 
-        if (!by.getFirst().equals(p1) || !by.getFirst().equals(p2)) {
+        if ((!by.getFirst().equals(p1) && !by.getFirst().equals(p2)) ||
+                (!by.getLast().equals(p1) && !by.getLast().equals(p2))) {
             throw new InvalidFilmInputException("Invalid parameter " + by.getFirst());
-        }
-
-        if (by.size() == 2 && !by.getLast().equals(p2)) {
-            throw new InvalidFilmInputException("Invalid parameter " + by.getLast());
         }
 
         return filmStorage.search(query, by);
