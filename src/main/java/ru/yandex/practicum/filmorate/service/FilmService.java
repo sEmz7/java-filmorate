@@ -62,7 +62,7 @@ public class FilmService {
                 .orElseThrow(() -> new NotFoundException("Нет пользователя с id = " + userId));
         filmStorage.addLike(filmId, userId);
         log.debug("User id={} поставил лайк фильму с id={}", user.getId(), film.getId());
-        return filmStorage.update(film);
+        return film;
     }
 
     public Film deleteLike(long filmId, long userId) {
@@ -71,7 +71,7 @@ public class FilmService {
                 .orElseThrow(() -> new NotFoundException("Нет пользователя с id =" + userId));
         filmStorage.deleteLike(filmId, userId);
         log.debug("User id={} удалил лайк у фильма с id={}", user.getId(), film.getId());
-        return filmStorage.update(film);
+        return film;
     }
 
     public List<Film> findTopFilmsByGenreAndYear(int limit, Long genreId, Integer year) {

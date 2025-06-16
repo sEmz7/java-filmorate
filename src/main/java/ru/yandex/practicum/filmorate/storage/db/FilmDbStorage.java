@@ -74,7 +74,13 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
                     "LEFT JOIN directors AS d ON fd.director_id = d.director_id " +
                     "LEFT JOIN likes AS l ON f.id = l.film_id " +
                     "WHERE d.director_id = ? " +
-                    "GROUP BY f.id " +
+                    "GROUP BY f.id, " +
+                    "f.name, " +
+                    "f.description, " +
+                    "f.release_date, " +
+                    "f.duration, " +
+                    "f.rating_id, " +
+                    "r.name " +
                     "ORDER BY COUNT(l.id) DESC;";
     private static final String FIND_COMMON_FILMS =
             "SELECT f.id, f.name, f.description, f.release_date, f.duration, " +
