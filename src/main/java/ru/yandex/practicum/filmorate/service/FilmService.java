@@ -77,16 +77,11 @@ public class FilmService {
         return filmStorage.update(film);
     }
 
-    public List<Film> findBestByLikes(int count) {
-        if (count <= 0) {
-            log.warn("Параметр count меньше нуля.");
-            throw new InvalidUserInputException("Параметр count должен быть положительным числом");
+    public List<Film> findTopFilmsByGenreAndYear(int limit, Long genreId, Integer year) {
+        if (limit <= 0) {
+            throw new InvalidFilmInputException("Параметр count должен быть положительным");
         }
-
-        List<Film> allFilms = new ArrayList<>(filmStorage.findAll());
-        allFilms.sort(Comparator.comparingInt(film -> -filmStorage.findFilmLikes(film.getId()).size()));
-        log.debug("Возвращен список из лучших фильмов.");
-        return allFilms.subList(0, Math.min(count, allFilms.size()));
+        return filmStorage.findTopFilmsByGenreAndYear(limit, genreId, year);
     }
 
     public Film findById(long id) {
