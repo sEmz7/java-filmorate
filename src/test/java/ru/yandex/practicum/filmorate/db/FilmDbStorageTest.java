@@ -60,6 +60,69 @@ class FilmDbStorageTest {
                 .hasValueSatisfying(f -> assertThat(f).hasFieldOrPropertyWithValue("id", createdFilm.getId()));
     }
 
+    @Test
+    void searchTest() {
+        Director director1 = directorsDbStorage.create(new Director("Энг Ли"));
+        Director director2 = directorsDbStorage.create(new Director("Фрэнк Спотниц"));
+        Film film1 = Film.builder()
+                .name("Крадущийся тигр, затаившийся дракон")
+                .description("test")
+                .releaseDate(LocalDate.of(2005, 1, 1))
+                .duration(133)
+                .directors(List.of(director1))
+                .mpa(new Rating(1L, "G"))
+                .build();
+
+        Film film2 = Film.builder()
+                .name("Крадущийся в ночи")
+                .description("test")
+                .releaseDate(LocalDate.of(2005, 1, 1))
+                .duration(133)
+                .directors(List.of(director2))
+                .mpa(new Rating(1L, "G"))
+                .build();
+
+        User user1 = User.builder()
+                .email("test@example1.com")
+                .login("testlogin1")
+                .name("Test User1")
+                .birthday(LocalDate.of(1990, 1, 1))
+                .build();
+
+        User user2 = User.builder()
+                .email("test@example2.com")
+                .login("testlogin2")
+                .name("Test User2")
+                .birthday(LocalDate.of(1990, 1, 1))
+                .build();
+
+        User user3 = User.builder()
+                .email("test@example3.com")
+                .login("testlogin3")
+                .name("Test User3")
+                .birthday(LocalDate.of(1990, 1, 1))
+                .build();
+
+        Film createdFilm1 = filmStorage.create(film1);
+        Film createdFilm2 = filmStorage.create(film2);
+        User createdUser1 = userDbStorage.create(user1);
+        User createdUser2 = userDbStorage.create(user2);
+        User createdUser3 = userDbStorage.create(user3);
+
+        likesDbStorage.addLike(createdFilm2.getId(), createdUser1.getId());
+        likesDbStorage.addLike(createdFilm2.getId(), createdUser2.getId());
+        likesDbStorage.addLike(createdFilm1.getId(), createdUser3.getId());
+
+        List<Film> searchByDirectorFilm = filmStorage.search("спот", List.of("director"));
+        List<Film> searchByNameFilm = filmStorage.search("крад", List.of("title"));
+        List<Film> searchByDirectorAndNameFilm = filmStorage.search("крад", List.of("director", "title"));
+
+        assertThat(searchByNameFilm.getFirst().getName()).isEqualTo(createdFilm2.getName());
+        assertThat(searchByNameFilm.getLast().getName()).isEqualTo(createdFilm1.getName());
+        assertThat(searchByDirectorFilm.getFirst().getDirectors().getFirst()).isEqualTo(createdFilm2.getDirectors().getFirst());
+        assertEquals(searchByDirectorAndNameFilm.size(), 2);
+    }
+
 
     @Test
     void testCreateFilm() {
