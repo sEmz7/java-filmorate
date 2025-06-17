@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 import ru.yandex.practicum.filmorate.exception.InvalidUserInputException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 import ru.yandex.practicum.filmorate.storage.db.FriendDbStorage;
@@ -24,11 +25,15 @@ import java.util.stream.Collectors;
 public class UserService {
     private final UserStorage userStorage;
     private final FriendDbStorage friendStorage;
+    private final EventService eventService;
 
     @Autowired
-    public UserService(@Qualifier(value = "userDb") UserStorage userStorage, FriendDbStorage friendStorage) {
+    public UserService(@Qualifier(value = "userDb") UserStorage userStorage,
+                       FriendDbStorage friendStorage,
+                       EventService eventService) {
         this.userStorage = userStorage;
         this.friendStorage = friendStorage;
+        this.eventService = eventService;
     }
 
     public Collection<User> findAll() {
@@ -73,6 +78,7 @@ public class UserService {
         getUserByIdOrThrow(friendId);
 
         friendStorage.addFriend(userId, friendId);
+        eventService.saveEvent(Event.Type.FRIEND, Event.Operation.ADD, friendId, userId);
         log.debug("Пользователь с id={} добавил в друзья пользователя с id={}", userId, friendId);
         return user;
     }
@@ -84,8 +90,9 @@ public class UserService {
         }
         User user = getUserByIdOrThrow(userId);
         getUserByIdOrThrow(friendId);
-        friendStorage.deleteFriend(userId, friendId);
 
+        friendStorage.deleteFriend(userId, friendId);
+        eventService.saveEvent(Event.Type.FRIEND, Event.Operation.REMOVE, friendId, userId);
         log.debug("User id={} удалил из друзей User id={}", userId, friendId);
         return user;
     }
@@ -115,4 +122,11 @@ public class UserService {
                 .map(this::getUserByIdOrThrow)
                 .toList();
     }
+
+    public Collection<Event> getFeed(long userId) {
+        getUserByIdOrThrow(userId);
+
+        return eventService.getFeedByUserId(userId);
+    }
+
 }
