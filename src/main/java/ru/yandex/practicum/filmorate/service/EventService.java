@@ -16,7 +16,7 @@ public class EventService {
 
     public void saveEvent(Event.Type type, Event.Operation operation, long entityId, long userId) {
         eventDbStorage.saveEvent(Event.builder()
-                        .type(type)
+                        .eventType(type)
                         .operation(operation)
                         .entityId(entityId)
                         .userId(userId)

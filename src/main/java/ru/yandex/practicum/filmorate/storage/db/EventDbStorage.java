@@ -15,7 +15,7 @@ public class EventDbStorage extends BaseDbStorage {
     private static final String SAVE_EVENT = """
             INSERT INTO events (type, operation, entity_id, user_id, created_at)
             VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)""";
-    private static final String GET_EVENTS_BY_USER_ID = "SELECT * FROM events WHERE user_id = ? ORDER BY created_at DESC";
+    private static final String GET_EVENTS_BY_USER_ID = "SELECT * FROM events WHERE user_id = ?";
 
     public EventDbStorage(JdbcTemplate jdbc, EventRowMapper eventRowMapper) {
         super(jdbc);
@@ -23,7 +23,8 @@ public class EventDbStorage extends BaseDbStorage {
     }
 
     public void saveEvent(Event event) {
-        insert(SAVE_EVENT, event.getType().name(), event.getOperation().name(), event.getEntityId(), event.getUserId());
+        insert(SAVE_EVENT, event.getEventType().name(), event.getOperation().name(), event.getEntityId(),
+                event.getUserId());
     }
 
     public Collection<Event> getEventsByUserId(long userId) {

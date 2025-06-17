@@ -7,11 +7,11 @@ import lombok.Data;
 @Builder
 public class Event {
     private Long id;
-    private Type type;
+    private Type eventType;
     private Operation operation;
     private Long entityId;
     private Long userId;
-    private Long createdAt;
+    private Long timestamp;
 
     public enum Type {
         LIKE, REVIEW, FRIEND
