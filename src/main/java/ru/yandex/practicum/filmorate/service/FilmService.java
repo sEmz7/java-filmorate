@@ -15,7 +15,6 @@ import ru.yandex.practicum.filmorate.storage.UserStorage;
 import ru.yandex.practicum.filmorate.storage.db.DirectorsDbStorage;
 
 import java.time.LocalDate;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 
@@ -35,7 +34,7 @@ public class FilmService {
         this.directorsDbStorage = directorsDbStorage;
     }
 
-    public Collection<Film> findAll() {
+    public List<Film> findAll() {
         return filmStorage.findAll();
     }
 
@@ -63,7 +62,7 @@ public class FilmService {
                 .orElseThrow(() -> new NotFoundException("Нет пользователя с id = " + userId));
         filmStorage.addLike(filmId, userId);
         log.debug("User id={} поставил лайк фильму с id={}", user.getId(), film.getId());
-        return filmStorage.update(film);
+        return film;
     }
 
     public Film deleteLike(long filmId, long userId) {
@@ -72,7 +71,7 @@ public class FilmService {
                 .orElseThrow(() -> new NotFoundException("Нет пользователя с id =" + userId));
         filmStorage.deleteLike(filmId, userId);
         log.debug("User id={} удалил лайк у фильма с id={}", user.getId(), film.getId());
-        return filmStorage.update(film);
+        return film;
     }
 
     public List<Film> findTopFilmsByGenreAndYear(int limit, Long genreId, Integer year) {
@@ -100,6 +99,22 @@ public class FilmService {
             throw new NotFoundException("Нет фильма с director_id=" + directorId);
         }
         return films;
+    }
+
+    public List<Film> search(String query, List<String> by) {
+        if (by.size() > 2) {
+            throw new InvalidFilmInputException("Invalid number of parameters");
+        }
+
+        String p1 = "director";
+        String p2 = "title";
+
+        if ((!by.getFirst().equals(p1) && !by.getFirst().equals(p2)) ||
+                (!by.getLast().equals(p1) && !by.getLast().equals(p2))) {
+            throw new InvalidFilmInputException("Invalid parameter " + by.getFirst());
+        }
+
+        return filmStorage.search(query, by);
     }
 
     public List<Film> findCommonFilms(long userId, long friendId) {

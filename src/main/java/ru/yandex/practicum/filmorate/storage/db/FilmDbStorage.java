@@ -74,7 +74,13 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
                     "LEFT JOIN directors AS d ON fd.director_id = d.director_id " +
                     "LEFT JOIN likes AS l ON f.id = l.film_id " +
                     "WHERE d.director_id = ? " +
-                    "GROUP BY f.id " +
+                    "GROUP BY f.id, " +
+                    "f.name, " +
+                    "f.description, " +
+                    "f.release_date, " +
+                    "f.duration, " +
+                    "f.rating_id, " +
+                    "r.name " +
                     "ORDER BY COUNT(l.id) DESC;";
     private static final String FIND_COMMON_FILMS =
             "SELECT f.id, f.name, f.description, f.release_date, f.duration, " +
@@ -108,6 +114,53 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
                     "ORDER BY COUNT(l.id) DESC " +
                     "LIMIT ?";
 
+    private static final String SEARCH_BY_DIRECTOR =
+            "SELECT f.id, f.name, f.description, f.release_date, f.duration, " +
+                    "f.rating_id, r.name AS rating_name, " +
+                    "g.genre_id, gr.name AS genre_name, " +
+                    "fd.director_id, d.name AS director_name " +
+                    "FROM films AS f " +
+                    "INNER JOIN ratings AS r ON f.rating_id = r.rating_id " +
+                    "LEFT JOIN film_genres AS g ON f.id = g.film_id " +
+                    "LEFT JOIN genres AS gr ON g.genre_id = gr.genre_id " +
+                    "LEFT JOIN film_directors AS fd ON f.id = fd.film_id " +
+                    "LEFT JOIN directors AS d ON fd.director_id = d.director_id " +
+                    "LEFT JOIN likes AS l ON f.id = l.film_id " +
+                    "WHERE LOWER(d.name) LIKE LOWER(CONCAT('%', ?, '%')) " +
+                    "GROUP BY f.id " +
+                    "ORDER BY COUNT(l.id) DESC";
+    private static final String SEARCH_BY_NAME =
+            "SELECT f.id, f.name, f.description, f.release_date, f.duration, " +
+                    "f.rating_id, r.name AS rating_name, " +
+                    "g.genre_id, gr.name AS genre_name, " +
+                    "fd.director_id, d.name AS director_name " +
+                    "FROM films AS f " +
+                    "INNER JOIN ratings AS r ON f.rating_id = r.rating_id " +
+                    "LEFT JOIN film_genres AS g ON f.id = g.film_id " +
+                    "LEFT JOIN genres AS gr ON g.genre_id = gr.genre_id " +
+                    "LEFT JOIN film_directors AS fd ON f.id = fd.film_id " +
+                    "LEFT JOIN directors AS d ON fd.director_id = d.director_id " +
+                    "LEFT JOIN likes AS l ON f.id = l.film_id " +
+                    "WHERE LOWER(f.name) LIKE LOWER(CONCAT('%', ?, '%')) " +
+                    "GROUP BY f.id " +
+                    "ORDER BY COUNT(l.id) DESC";
+    private static final String SEARCH_BY_DIRECTOR_AND_NAME =
+            "SELECT f.id, f.name, f.description, f.release_date, f.duration, " +
+                    "f.rating_id, r.name AS rating_name, " +
+                    "g.genre_id, gr.name AS genre_name, " +
+                    "fd.director_id, d.name AS director_name " +
+                    "FROM films AS f " +
+                    "INNER JOIN ratings AS r ON f.rating_id = r.rating_id " +
+                    "LEFT JOIN film_genres AS g ON f.id = g.film_id " +
+                    "LEFT JOIN genres AS gr ON g.genre_id = gr.genre_id " +
+                    "LEFT JOIN film_directors AS fd ON f.id = fd.film_id " +
+                    "LEFT JOIN directors AS d ON fd.director_id = d.director_id " +
+                    "LEFT JOIN likes AS l ON f.id = l.film_id " +
+                    "WHERE LOWER(d.name) LIKE LOWER(CONCAT('%', ?, '%')) OR " +
+                    "LOWER(f.name) LIKE LOWER(CONCAT('%', ?, '%')) " +
+                    "GROUP BY f.id " +
+                    "ORDER BY COUNT(l.id) DESC";
+
     @Autowired
     public FilmDbStorage(JdbcTemplate jdbc, FilmRowMapper filmRowMapper, GenresDbStorage genresDbStorage, RatingDbStorage ratingDbStorage, LikesDbStorage likesDbStorage, DirectorsDbStorage directorsDbStorage) {
         super(jdbc);
@@ -119,7 +172,7 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
     }
 
     @Override
-    public Collection<Film> findAll() {
+    public List<Film> findAll() {
         return jdbc.query(FIND_ALL, (rs, rowNum) -> getFilmFromResultSet(rs));
     }
 
@@ -175,7 +228,7 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
             throw new NotFoundException("Нет фильма с id=" + id);
         }
 
-        Film mergedFilm = partialFilms.get(0);
+        Film mergedFilm = partialFilms.getFirst();
         Set<Genre> genreSet = new LinkedHashSet<>();
         for (Film film : partialFilms) {
             genreSet.addAll(film.getGenres());
@@ -187,14 +240,12 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
 
     @Override
     public List<Film> findFilmsByDirectorSortYear(long id) {
-        List<Film> films = jdbc.query(FIND_BY_DIRECTOR_SORT_BY_YEAR, filmRowMapper, id);
-        return films;
+        return jdbc.query(FIND_BY_DIRECTOR_SORT_BY_YEAR, filmRowMapper, id);
     }
 
     @Override
     public List<Film> findFilmsByDirectorSortLikes(long id) {
-        List<Film> films = jdbc.query(FIND_BY_DIRECTOR_SORT_BY_LIKES, filmRowMapper, id);
-        return films;
+        return jdbc.query(FIND_BY_DIRECTOR_SORT_BY_LIKES, filmRowMapper, id);
     }
 
     @Override
@@ -210,6 +261,17 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
     @Override
     public void deleteLike(long filmId, long userId) {
         likesDbStorage.deleteLike(filmId, userId);
+    }
+
+    @Override
+    public List<Film> search(String query, List<String> by) {
+        if (by.size() == 2) {
+            return jdbc.query(SEARCH_BY_DIRECTOR_AND_NAME, filmRowMapper, query, query);
+        } else {
+            return by.getFirst().equals("director") ?
+                    jdbc.query(SEARCH_BY_DIRECTOR, filmRowMapper, query) :
+                    jdbc.query(SEARCH_BY_NAME, filmRowMapper, query);
+        }
     }
 
     private Film getFilmFromResultSet(ResultSet resultSet) throws SQLException {
