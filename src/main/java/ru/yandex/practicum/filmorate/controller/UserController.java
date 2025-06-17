@@ -4,6 +4,8 @@ import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 
@@ -65,4 +67,10 @@ public class UserController {
                                                  @PathVariable("otherId") long friendId) {
         return userService.findAllCommonFriends(userId, friendId);
     }
+
+    @GetMapping("/{id}/feed")
+    public Collection<Event> getFeed(@PathVariable("id") long userId) {
+        return userService.getFeed(userId);
+    }
+
 }

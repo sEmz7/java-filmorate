@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 import ru.yandex.practicum.filmorate.exception.InvalidFilmInputException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
@@ -25,14 +26,17 @@ public class FilmService {
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
     private final DirectorsDbStorage directorsDbStorage;
+    private final EventService eventService;
 
     @Autowired
     public FilmService(@Qualifier("filmDb") FilmStorage filmStorage,
                        @Qualifier("userDb") UserStorage userStorage,
-                       DirectorsDbStorage directorsDbStorage) {
+                       DirectorsDbStorage directorsDbStorage,
+                       EventService eventService) {
         this.filmStorage = filmStorage;
         this.userStorage = userStorage;
         this.directorsDbStorage = directorsDbStorage;
+        this.eventService = eventService;
     }
 
     public Collection<Film> findAll() {
@@ -62,6 +66,7 @@ public class FilmService {
         User user = userStorage.getUserById(userId)
                 .orElseThrow(() -> new NotFoundException("Нет пользователя с id = " + userId));
         filmStorage.addLike(filmId, userId);
+        eventService.saveEvent(Event.Type.LIKE, Event.Operation.ADD, filmId, userId);
         log.debug("User id={} поставил лайк фильму с id={}", user.getId(), film.getId());
         return filmStorage.update(film);
     }
@@ -71,6 +76,7 @@ public class FilmService {
         User user = userStorage.getUserById(userId)
                 .orElseThrow(() -> new NotFoundException("Нет пользователя с id =" + userId));
         filmStorage.deleteLike(filmId, userId);
+        eventService.saveEvent(Event.Type.LIKE, Event.Operation.REMOVE, filmId, userId);
         log.debug("User id={} удалил лайк у фильма с id={}", user.getId(), film.getId());
         return filmStorage.update(film);
     }

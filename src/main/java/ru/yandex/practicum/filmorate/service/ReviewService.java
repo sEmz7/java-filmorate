@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.filmorate.exception.InvalidUserInputException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.storage.db.FilmDbStorage;
 import ru.yandex.practicum.filmorate.storage.db.ReviewDbStorage;
@@ -21,6 +22,8 @@ public class ReviewService {
     private final ReviewDbStorage reviewStorage;
     private final FilmDbStorage filmStorage;
     private final UserDbStorage userStorage;
+    private final EventService eventService;
+
     private static final short LIKE_VALUE = 1;
     private static final short DISLIKE_VALUE = -1;
     private static final short DISLIKE_VALUE_IF_LIKE_EXISTS = -2;
@@ -35,19 +38,26 @@ public class ReviewService {
             throw new NotFoundException("Фильм с id=" + review.getFilmId() + " не найден.");
         }
         checkUserExistence(review.getUserId());
-        return reviewStorage.create(review);
+
+        review = reviewStorage.create(review);
+        eventService.saveEvent(Event.Type.REVIEW, Event.Operation.ADD, review.getReviewId(), review.getUserId());
+        return review;
     }
 
     public Review update(Review review) {
         Review foundReview = findReviewOrThrow(review.getReviewId());
         review.setReviewId(foundReview.getReviewId());
         review.setUseful(foundReview.getUseful());
-        return reviewStorage.update(review);
+
+        review = reviewStorage.update(review);
+        eventService.saveEvent(Event.Type.REVIEW, Event.Operation.UPDATE, review.getReviewId(), review.getUserId());
+        return review;
     }
 
     public void delete(long id) {
-        findReviewOrThrow(id);
+        Review review = findReviewOrThrow(id);
         reviewStorage.delete(id);
+        eventService.saveEvent(Event.Type.REVIEW, Event.Operation.REMOVE, id, review.getUserId());
     }
 
     public Review findById(long id) {
