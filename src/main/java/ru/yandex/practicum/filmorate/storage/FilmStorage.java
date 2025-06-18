@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.storage;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Like;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface FilmStorage {
@@ -32,4 +33,6 @@ public interface FilmStorage {
     List<Film> findCommonFilms(long userId, long friendId);
 
     List<Film> findTopFilmsByGenreAndYear(int limit, Long genreId, Integer year);
+
+    Collection<Film> getRecommendationsForUser(long userId);
 }
