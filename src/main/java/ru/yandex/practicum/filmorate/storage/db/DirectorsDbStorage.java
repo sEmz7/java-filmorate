@@ -19,6 +19,9 @@ public class DirectorsDbStorage extends BaseDbStorage {
     private static final String UPDATE_DIRECTOR = "UPDATE directors SET name = ? WHERE director_id = ?;";
     private static final String FIND_DIRECTOR_BY_ID = "SELECT * FROM directors WHERE director_id = ?;";
     private static final String FIND_ALL = "SELECT * FROM directors";
+    private static final String FIND_BY_FILM_ID = "SELECT d.director_id, d.name FROM film_directors AS fd " +
+                                                    "JOIN directors AS d ON d.director_id = fd.director_id " +
+                                                    "WHERE fd.film_id = ?;";
     private static final String DELETE_DIRECTOR = "DELETE FROM directors WHERE director_id = ?";
     private static final String DELETE_FILM_DIRECTORS = "DELETE FROM film_directors WHERE film_id = ?";
 
@@ -57,6 +60,10 @@ public class DirectorsDbStorage extends BaseDbStorage {
         return jdbc.query(FIND_ALL, directorRowMapper);
     }
 
+    public List<Director> findByFilmId(long filmId) {
+        return jdbc.query(FIND_BY_FILM_ID, directorRowMapper, filmId);
+    }
+
     public Director delete(long directorId) {
         Director director = findById(directorId);
         if (director == null) {
@@ -65,5 +72,9 @@ public class DirectorsDbStorage extends BaseDbStorage {
         }
         jdbc.update(DELETE_DIRECTOR, directorId);
         return director;
+    }
+
+    public void deleteFilmDirectors(long filmId) {
+        jdbc.update(DELETE_FILM_DIRECTORS, filmId);
     }
 }

@@ -45,7 +45,7 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
                     "LEFT JOIN directors AS d ON fd.director_id = d.director_id " +
                     "WHERE f.id = ?;";
     private static final String UPDATE =
-            "UPDATE films SET name = ?, description = ?, release_date = ?, duration = ? WHERE id = ?;";
+            "UPDATE films SET name = ?, description = ?, release_date = ?, duration = ?, rating_id = ? WHERE id = ?;";
     private static final String DELETE = "DELETE FROM films WHERE id = ?;";
     private static final String FIND_BY_DIRECTOR_SORT_BY_YEAR =
             "SELECT f.id, f.name, f.description, f.release_date, f.duration, " +
@@ -129,7 +129,7 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
                     "WHERE LOWER(d.name) LIKE LOWER(CONCAT('%', ?, '%')) " +
                     "GROUP BY f.id " +
                     "ORDER BY COUNT(l.id) DESC";
-    private static final String SEARCH_BY_NAME =
+    private static final String SEARCH_BY_FILM_NAME =
             "SELECT f.id, f.name, f.description, f.release_date, f.duration, " +
                     "f.rating_id, r.name AS rating_name, " +
                     "g.genre_id, gr.name AS genre_name, " +
@@ -144,7 +144,7 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
                     "WHERE LOWER(f.name) LIKE LOWER(CONCAT('%', ?, '%')) " +
                     "GROUP BY f.id " +
                     "ORDER BY COUNT(l.id) DESC";
-    private static final String SEARCH_BY_DIRECTOR_AND_NAME =
+    private static final String SEARCH_BY_DIRECTOR_AND_FILM_NAME =
             "SELECT f.id, f.name, f.description, f.release_date, f.duration, " +
                     "f.rating_id, r.name AS rating_name, " +
                     "g.genre_id, gr.name AS genre_name, " +
@@ -158,7 +158,7 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
                     "LEFT JOIN likes AS l ON f.id = l.film_id " +
                     "WHERE LOWER(d.name) LIKE LOWER(CONCAT('%', ?, '%')) OR " +
                     "LOWER(f.name) LIKE LOWER(CONCAT('%', ?, '%')) " +
-                    "GROUP BY f.id " +
+                    "GROUP BY f.id, r.name, g.genre_id, gr.name, d.director_id, d.name " +
                     "ORDER BY COUNT(l.id) DESC";
     private static final String GET_RECOMMENDATIONS_FOR_USER = """
             SELECT f.*,
@@ -181,7 +181,7 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
                     SELECT film_id FROM likes WHERE user_id = ?
                 )
             )
-            GROUP BY f.id""";
+            GROUP BY f.id, r.name, g.genre_id, g.name, d.director_id, d.name""";
 
     @Autowired
     public FilmDbStorage(JdbcTemplate jdbc, FilmRowMapper filmRowMapper, GenresDbStorage genresDbStorage, RatingDbStorage ratingDbStorage, LikesDbStorage likesDbStorage, DirectorsDbStorage directorsDbStorage) {
@@ -195,7 +195,12 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
 
     @Override
     public List<Film> findAll() {
-        return jdbc.query(FIND_ALL, (rs, rowNum) -> getFilmFromResultSet(rs));
+        List<Film> films = jdbc.query(FIND_ALL, (rs, rowNum) -> getFilmFromResultSet(rs));
+        films.forEach(film -> {
+            film.setGenres(genresDbStorage.findFilmGenres(film.getId()));
+            film.setDirectors(directorsDbStorage.findByFilmId(film.getId()));
+        });
+        return films;
     }
 
     @Override
@@ -218,15 +223,22 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
     public Film update(Film film) {
         findFilmById(film.getId());
         jdbc.update(UPDATE,
-                film.getName(), film.getDescription(), film.getReleaseDate(), film.getDuration(), film.getId());
+                film.getName(), film.getDescription(), film.getReleaseDate(),
+                film.getDuration(), film.getMpa().getId(), film.getId());
         if (film.getGenres() != null) {
             genresDbStorage.saveFilmGenres(film.getId(), film.getGenres());
+        } else {
+            film.setGenres(genresDbStorage.findFilmGenres(film.getId()));
         }
+
         if (film.getMpa() != null) {
             ratingDbStorage.getRatingById(film.getMpa().getId());
         }
+
         if (film.getDirectors() != null) {
             directorsDbStorage.saveFilmDirectors(film.getId(), film.getDirectors());
+        } else {
+            directorsDbStorage.deleteFilmDirectors(film.getId());
         }
         return film;
     }
@@ -288,11 +300,11 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
     @Override
     public List<Film> search(String query, List<String> by) {
         if (by.size() == 2) {
-            return jdbc.query(SEARCH_BY_DIRECTOR_AND_NAME, filmRowMapper, query, query);
+            return jdbc.query(SEARCH_BY_DIRECTOR_AND_FILM_NAME, filmRowMapper, query, query);
         } else {
             return by.getFirst().equals("director") ?
                     jdbc.query(SEARCH_BY_DIRECTOR, filmRowMapper, query) :
-                    jdbc.query(SEARCH_BY_NAME, filmRowMapper, query);
+                    jdbc.query(SEARCH_BY_FILM_NAME, filmRowMapper, query);
         }
     }
 
@@ -303,6 +315,7 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
                 .description(resultSet.getString("description"))
                 .releaseDate(resultSet.getDate("release_date").toLocalDate())
                 .duration(resultSet.getInt("duration"))
+                .mpa(new Rating(resultSet.getLong("rating_id"), resultSet.getString("rating_name")))
                 .build();
     }
 

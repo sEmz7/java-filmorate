@@ -49,6 +49,9 @@ public class UserService {
         if (user.getBirthday().isAfter(LocalDate.now())) {
             throw new InvalidUserInputException("Дата рождения не может быть позже сегодняшнего дня.");
         }
+        if (user.getName().isEmpty()) {
+            user.setName(user.getLogin());
+        }
         return userStorage.create(user);
     }
 
