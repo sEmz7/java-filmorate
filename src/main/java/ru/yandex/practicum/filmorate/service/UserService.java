@@ -9,7 +9,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import ru.yandex.practicum.filmorate.exception.InvalidUserInputException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Event;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 import ru.yandex.practicum.filmorate.storage.db.FriendDbStorage;
 
@@ -26,14 +28,17 @@ public class UserService {
     private final UserStorage userStorage;
     private final FriendDbStorage friendStorage;
     private final EventService eventService;
+    private final FilmStorage filmStorage;
 
     @Autowired
     public UserService(@Qualifier(value = "userDb") UserStorage userStorage,
                        FriendDbStorage friendStorage,
-                       EventService eventService) {
+                       EventService eventService,
+                       FilmStorage filmStorage) {
         this.userStorage = userStorage;
         this.friendStorage = friendStorage;
         this.eventService = eventService;
+        this.filmStorage = filmStorage;
     }
 
     public Collection<User> findAll() {
@@ -127,6 +132,12 @@ public class UserService {
         getUserByIdOrThrow(userId);
 
         return eventService.getFeedByUserId(userId);
+    }
+
+    public Collection<Film> getRecommendations(long userId) {
+        getUserByIdOrThrow(userId);
+
+        return filmStorage.getRecommendationsForUser(userId);
     }
 
 }

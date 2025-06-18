@@ -160,6 +160,28 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
                     "LOWER(f.name) LIKE LOWER(CONCAT('%', ?, '%')) " +
                     "GROUP BY f.id " +
                     "ORDER BY COUNT(l.id) DESC";
+    private static final String GET_RECOMMENDATIONS_FOR_USER = """
+            SELECT f.*,
+                r.name rating_name,
+                g.genre_id, g.name genre_name,
+                d.director_id, d.name director_name
+            FROM films f
+            LEFT JOIN ratings r ON f.rating_id = r.rating_id
+            LEFT JOIN film_genres fg ON f.id = fg.film_id
+            LEFT JOIN genres g ON fg.genre_id = g.genre_id
+            LEFT JOIN film_directors fd ON f.id = fd.film_id
+            LEFT JOIN directors d ON fd.director_id = d.director_id
+            WHERE f.id IN (
+                SELECT film_id FROM likes WHERE user_id IN (
+                    SELECT l2.user_id FROM likes l1
+                    LEFT JOIN likes l2 ON l1.film_id = l2.film_id
+                    WHERE l1.user_id = ? AND l2.user_id <> ?
+                    GROUP BY l2.user_id
+                ) AND film_id NOT IN (
+                    SELECT film_id FROM likes WHERE user_id = ?
+                )
+            )
+            GROUP BY f.id""";
 
     @Autowired
     public FilmDbStorage(JdbcTemplate jdbc, FilmRowMapper filmRowMapper, GenresDbStorage genresDbStorage, RatingDbStorage ratingDbStorage, LikesDbStorage likesDbStorage, DirectorsDbStorage directorsDbStorage) {
@@ -300,6 +322,17 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
                 limit
         );
         return processFilms(partialFilms);
+    }
+
+    @Override
+    public Collection<Film> getRecommendationsForUser(long userId) {
+        return jdbc.query(
+                GET_RECOMMENDATIONS_FOR_USER,
+                filmRowMapper,
+                userId,
+                userId,
+                userId
+        );
     }
 
     private List<Film> processFilms(List<Film> partialFilms) {
