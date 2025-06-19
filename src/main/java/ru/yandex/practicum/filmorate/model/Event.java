@@ -6,7 +6,7 @@ import lombok.Data;
 @Data
 @Builder
 public class Event {
-    private Long id;
+    private Long eventId;
     private Type eventType;
     private Operation operation;
     private Long entityId;
