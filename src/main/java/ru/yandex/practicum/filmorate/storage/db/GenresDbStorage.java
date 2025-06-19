@@ -40,6 +40,7 @@ public class GenresDbStorage {
     public List<Genre> findAll() {
         return jdbc.query(FIND_ALL, genreRowMapper);
     }
+
     public List<Genre> findFilmGenres(long filmId) {
         return jdbc.query(FIND_FILM_GENRES, genreRowMapper, filmId);
     }
