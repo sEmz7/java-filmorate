@@ -100,7 +100,8 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
             "SELECT f.id, f.name, f.description, f.release_date, f.duration, " +
                     "f.rating_id, r.name AS rating_name, " +
                     "g.genre_id, gr.name AS genre_name, " +
-                    "fd.director_id, d.name AS director_name " +
+                    "fd.director_id, d.name AS director_name, " +
+                    "COUNT(l.id) AS likes_count " +
                     "FROM films AS f " +
                     "INNER JOIN ratings AS r ON f.rating_id = r.rating_id " +
                     "LEFT JOIN film_genres AS g ON f.id = g.film_id " +
@@ -110,9 +111,8 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
                     "LEFT JOIN likes AS l ON f.id = l.film_id " +
                     "WHERE (? IS NULL OR g.genre_id = ?) " +
                     "AND (? IS NULL OR EXTRACT(YEAR FROM f.release_date) = ?) " +
-                    "GROUP BY f.id, g.genre_id, gr.name, fd.director_id, d.name " +
-                    "ORDER BY COUNT(l.id) DESC " +
-                    "LIMIT ?";
+                    "GROUP BY f.id, f.name, f.description, f.release_date, f.duration, f.rating_id, r.name, g.genre_id, gr.name, fd.director_id, d.name " +
+                    "ORDER BY likes_count DESC, f.id";
 
     private static final String SEARCH_BY_DIRECTOR =
             "SELECT f.id, f.name, f.description, f.release_date, f.duration, " +
@@ -331,21 +331,25 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
                 FIND_TOP_FILMS_BY_GENRE_AND_YEAR,
                 filmRowMapper,
                 genreId, genreId,
-                year, year,
-                limit
+                year, year
         );
-        return processFilms(partialFilms);
+        List<Film> films = processFilms(partialFilms);
+        if (films.size() > limit) {
+            return films.subList(0, limit);
+        }
+        return films;
     }
 
     @Override
     public Collection<Film> getRecommendationsForUser(long userId) {
-        return jdbc.query(
+        List<Film> partialFilms = jdbc.query(
                 GET_RECOMMENDATIONS_FOR_USER,
                 filmRowMapper,
                 userId,
                 userId,
                 userId
         );
+        return processFilms(partialFilms);
     }
 
     private List<Film> processFilms(List<Film> partialFilms) {

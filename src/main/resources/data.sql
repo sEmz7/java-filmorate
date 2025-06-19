@@ -22,3 +22,4 @@ MERGE INTO genres AS g
 ON g.name = vals.name
 WHEN NOT MATCHED THEN
     INSERT (name) VALUES (vals.name);
+

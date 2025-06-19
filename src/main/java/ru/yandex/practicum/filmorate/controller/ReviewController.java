@@ -43,7 +43,7 @@ public class ReviewController {
 
     @GetMapping
     public ResponseEntity<Collection<Review>> findCountReviewsByFilmId(
-            @RequestParam Long filmId,
+            @RequestParam(required = false) Long filmId,
             @RequestParam(defaultValue = "10") int count) {
         Collection<Review> reviews = reviewService.findCountReviewsByFilmId(filmId, count);
         return ResponseEntity.ok().body(reviews);
