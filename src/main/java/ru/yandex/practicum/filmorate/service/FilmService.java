@@ -10,6 +10,7 @@ import ru.yandex.practicum.filmorate.exception.InvalidFilmInputException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
@@ -17,7 +18,9 @@ import ru.yandex.practicum.filmorate.storage.db.DirectorsDbStorage;
 
 import java.time.LocalDate;
 import java.util.Comparator;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @Slf4j
@@ -53,6 +56,12 @@ public class FilmService {
         if (newFilm.getId() == null) {
             throw new InvalidFilmInputException("Укажите id фильму.");
         }
+
+        if (newFilm.getGenres() != null) {
+            Set<Genre> genres = new LinkedHashSet<>(newFilm.getGenres());
+            newFilm.setGenres(genres.stream().toList());
+        }
+
         return filmStorage.update(newFilm);
     }
 

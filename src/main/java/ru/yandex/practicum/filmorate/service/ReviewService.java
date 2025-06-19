@@ -47,6 +47,8 @@ public class ReviewService {
     public Review update(Review review) {
         Review foundReview = findReviewOrThrow(review.getReviewId());
         review.setReviewId(foundReview.getReviewId());
+        review.setFilmId(foundReview.getFilmId());
+        review.setUserId(foundReview.getUserId());
         review.setUseful(foundReview.getUseful());
 
         review = reviewStorage.update(review);

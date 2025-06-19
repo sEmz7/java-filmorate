@@ -19,7 +19,7 @@ public class ReviewDbStorage extends BaseDbStorage {
     private static final String CREATE =
             "INSERT INTO reviews (content, isPositive, user_id, film_id, useful) VALUES (?, ?, ?, ?, ?)";
     private static final String UPDATE =
-            "UPDATE reviews SET content = ?, isPositive = ?, user_id = ?, film_id = ? WHERE review_id = ?";
+            "UPDATE reviews SET content = ?, isPositive = ? WHERE review_id = ?";
     private static final String DELETE = "DELETE FROM reviews WHERE review_id = ?";
     private static final String FIND_BY_ID = "SELECT * FROM reviews WHERE review_id = ?";
     private static final String FIND_ALL_BY_COUNT = "SELECT * FROM reviews ORDER BY useful DESC LIMIT ?";
@@ -63,8 +63,6 @@ public class ReviewDbStorage extends BaseDbStorage {
         jdbc.update(UPDATE,
                 review.getContent(),
                 review.getIsPositive(),
-                review.getUserId(),
-                review.getFilmId(),
                 review.getReviewId());
         return review;
     }

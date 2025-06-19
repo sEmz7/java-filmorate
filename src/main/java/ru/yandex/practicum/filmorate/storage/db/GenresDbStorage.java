@@ -16,6 +16,10 @@ public class GenresDbStorage {
     private final GenreRowMapper genreRowMapper;
     private static final String SAVE_FILM_GENRES = "INSERT INTO film_genres (film_id, genre_id) VALUES (?, ?);";
     private static final String FIND_GENRE_BY_ID = "SELECT * FROM genres WHERE genre_id = ?;";
+    private static final String FIND_FILM_GENRES = "SELECT g.genre_id, g.name " +
+                                                    "FROM film_genres AS fg " +
+                                                    "JOIN genres AS g ON g.genre_id = fg.genre_id " +
+                                                    "WHERE film_id = ?;";
     private static final String FIND_ALL = "SELECT * FROM genres";
 
     public void saveFilmGenres(long filmId, List<Genre> genres) {
@@ -35,5 +39,9 @@ public class GenresDbStorage {
 
     public List<Genre> findAll() {
         return jdbc.query(FIND_ALL, genreRowMapper);
+    }
+
+    public List<Genre> findFilmGenres(long filmId) {
+        return jdbc.query(FIND_FILM_GENRES, genreRowMapper, filmId);
     }
 }

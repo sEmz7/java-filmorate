@@ -73,6 +73,6 @@ CREATE TABLE IF NOT EXISTS events (
     type VARCHAR(6) NOT NULL,
     operation VARCHAR(6) NOT NULL,
     entity_id INTEGER NOT NULL,
-    user_id INTEGER NOT NULL REFERENCES users (id),
+    user_id INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE,
     created_at DATETIME NOT NULL
 );
