@@ -6,10 +6,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.FilmRowMapper;
-import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.model.Like;
-import ru.yandex.practicum.filmorate.model.Rating;
+import ru.yandex.practicum.filmorate.model.*;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.sql.ResultSet;
@@ -191,9 +188,12 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
     @Override
     public List<Film> findAll() {
         List<Film> films = jdbc.query(FIND_ALL, (rs, rowNum) -> getFilmFromResultSet(rs));
+        Map<Long, List<Genre>> filmGenres = genresDbStorage.findAllFilmGenres();
+        Map<Long, List<Director>> filmDirectors = directorsDbStorage.findAllFilmDirectors();
+
         films.forEach(film -> {
-            film.setGenres(genresDbStorage.findFilmGenres(film.getId()));
-            film.setDirectors(directorsDbStorage.findByFilmId(film.getId()));
+            film.setGenres(filmGenres.getOrDefault(film.getId(), Collections.emptyList()));
+            film.setDirectors(filmDirectors.getOrDefault(film.getId(), Collections.emptyList()));
         });
         return films;
     }
@@ -329,14 +329,18 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
             return films;
         }
 
+        Map<Long, List<Genre>> filmGenres = genresDbStorage.findAllFilmGenres();
+        Map<Long, List<Director>> filmDirectors = directorsDbStorage.findAllFilmDirectors();
+        Map<Long, Set<Long>> filmLikes = likesDbStorage.findAllFilmLikes().stream()
+                .collect(Collectors.groupingBy(
+                        Like::getFilmId,
+                        Collectors.mapping(Like::getUserId, Collectors.toSet())
+                ));
+
         films.forEach(film -> {
-            film.setGenres(genresDbStorage.findFilmGenres(film.getId()));
-            film.setDirectors(directorsDbStorage.findByFilmId(film.getId()));
-            Set<Long> likes = likesDbStorage.findFilmLikes(film.getId())
-                    .stream()
-                    .map(Like::getUserId)
-                    .collect(Collectors.toSet());
-            film.setLikes(likes);
+            film.setGenres(filmGenres.getOrDefault(film.getId(), Collections.emptyList()));
+            film.setDirectors(filmDirectors.getOrDefault(film.getId(), Collections.emptyList()));
+            film.setLikes(filmLikes.getOrDefault(film.getId(), Collections.emptySet()));
         });
 
         return films;

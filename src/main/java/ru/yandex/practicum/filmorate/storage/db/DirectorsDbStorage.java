@@ -8,7 +8,10 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.DirectorRowMapper;
 import ru.yandex.practicum.filmorate.model.Director;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Component
 @Slf4j
@@ -20,10 +23,12 @@ public class DirectorsDbStorage extends BaseDbStorage {
     private static final String FIND_DIRECTOR_BY_ID = "SELECT * FROM directors WHERE director_id = ?;";
     private static final String FIND_ALL = "SELECT * FROM directors";
     private static final String FIND_BY_FILM_ID = "SELECT d.director_id, d.name FROM film_directors AS fd " +
-                                                    "JOIN directors AS d ON d.director_id = fd.director_id " +
-                                                    "WHERE fd.film_id = ?;";
+            "JOIN directors AS d ON d.director_id = fd.director_id " +
+            "WHERE fd.film_id = ?;";
     private static final String DELETE_DIRECTOR = "DELETE FROM directors WHERE director_id = ?";
     private static final String DELETE_FILM_DIRECTORS = "DELETE FROM film_directors WHERE film_id = ?";
+    private static final String FIND_ALL_WITH_FILM_ID = "SELECT fd.film_id, d.director_id, d.name " +
+            "FROM film_directors fd JOIN directors d ON fd.director_id = d.director_id";
 
     @Autowired
     public DirectorsDbStorage(JdbcTemplate jdbc, DirectorRowMapper directorRowMapper) {
@@ -58,6 +63,18 @@ public class DirectorsDbStorage extends BaseDbStorage {
 
     public List<Director> findAll() {
         return jdbc.query(FIND_ALL, directorRowMapper);
+    }
+
+    public Map<Long, List<Director>> findAllFilmDirectors() {
+        return jdbc.query(FIND_ALL_WITH_FILM_ID, rs -> {
+            Map<Long, List<Director>> result = new HashMap<>();
+            while (rs.next()) {
+                long filmId = rs.getLong("film_id");
+                Director director = new Director(rs.getLong("director_id"), rs.getString("name"));
+                result.computeIfAbsent(filmId, k -> new ArrayList<>()).add(director);
+            }
+            return result;
+        });
     }
 
     public List<Director> findByFilmId(long filmId) {

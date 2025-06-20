@@ -7,7 +7,10 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.GenreRowMapper;
 import ru.yandex.practicum.filmorate.model.Genre;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
@@ -17,10 +20,24 @@ public class GenresDbStorage {
     private static final String SAVE_FILM_GENRES = "INSERT INTO film_genres (film_id, genre_id) VALUES (?, ?);";
     private static final String FIND_GENRE_BY_ID = "SELECT * FROM genres WHERE genre_id = ?;";
     private static final String FIND_FILM_GENRES = "SELECT g.genre_id, g.name " +
-                                                    "FROM film_genres AS fg " +
-                                                    "JOIN genres AS g ON g.genre_id = fg.genre_id " +
-                                                    "WHERE film_id = ?;";
+            "FROM film_genres AS fg " +
+            "JOIN genres AS g ON g.genre_id = fg.genre_id " +
+            "WHERE film_id = ?;";
     private static final String FIND_ALL = "SELECT * FROM genres";
+    private static final String FIND_ALL_WITH_FILM_ID = "SELECT fg.film_id, g.genre_id, g.name " +
+            "FROM film_genres fg JOIN genres g ON fg.genre_id = g.genre_id";
+
+    public Map<Long, List<Genre>> findAllFilmGenres() {
+        return jdbc.query(FIND_ALL_WITH_FILM_ID, rs -> {
+            Map<Long, List<Genre>> result = new HashMap<>();
+            while (rs.next()) {
+                long filmId = rs.getLong("film_id");
+                Genre genre = new Genre(rs.getLong("genre_id"), rs.getString("name"));
+                result.computeIfAbsent(filmId, k -> new ArrayList<>()).add(genre);
+            }
+            return result;
+        });
+    }
 
     public void saveFilmGenres(long filmId, List<Genre> genres) {
         jdbc.update("DELETE FROM film_genres WHERE film_id = ?", filmId);

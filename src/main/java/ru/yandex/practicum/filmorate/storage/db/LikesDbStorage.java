@@ -16,6 +16,7 @@ public class LikesDbStorage {
     private static final String FIND_LIKES = "SELECT * FROM likes WHERE film_id = ?;";
     private static final String CREATE = "INSERT INTO likes (film_id, user_id) VALUES (?, ?) ";
     private static final String DELETE = "DELETE FROM likes WHERE film_id = ? AND user_id = ?;";
+    private static final String FIND_ALL = "SELECT film_id, user_id FROM likes";
 
     public List<Like> findFilmLikes(long filmId) {
         return jdbc.query(FIND_LIKES, likeRowMapper, filmId);
@@ -27,5 +28,9 @@ public class LikesDbStorage {
 
     public void deleteLike(long filmId, long userId) {
         jdbc.update(DELETE, filmId, userId);
+    }
+
+    public List<Like> findAllFilmLikes() {
+        return jdbc.query(FIND_ALL, likeRowMapper);
     }
 }
