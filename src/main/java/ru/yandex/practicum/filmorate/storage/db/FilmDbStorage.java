@@ -296,11 +296,10 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
     public List<Film> search(String query, List<String> by) {
         if (by.size() == 2) {
             return jdbc.query(SEARCH_BY_DIRECTOR_AND_FILM_NAME, filmRowMapper, query, query);
-        } else {
-            return by.getFirst().equals("director") ?
-                    jdbc.query(SEARCH_BY_DIRECTOR, filmRowMapper, query) :
-                    jdbc.query(SEARCH_BY_FILM_NAME, filmRowMapper, query);
         }
+        return by.getFirst().equals("director") ?
+                jdbc.query(SEARCH_BY_DIRECTOR, filmRowMapper, query) :
+                jdbc.query(SEARCH_BY_FILM_NAME, filmRowMapper, query);
     }
 
     private Film getFilmFromResultSet(ResultSet resultSet) throws SQLException {
