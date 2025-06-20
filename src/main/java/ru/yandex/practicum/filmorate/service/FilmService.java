@@ -117,15 +117,19 @@ public class FilmService {
         if (by.size() > 2) {
             throw new InvalidFilmInputException("Invalid number of parameters");
         }
-
         String p1 = "director";
         String p2 = "title";
-
-        if ((!by.getFirst().equals(p1) && !by.getFirst().equals(p2)) ||
-                (!by.getLast().equals(p1) && !by.getLast().equals(p2))) {
-            throw new InvalidFilmInputException("Invalid parameter " + by.getFirst());
+        if (!by.getFirst().equals(p1) && !by.getFirst().equals(p2)) {
+            throw new InvalidFilmInputException("Invalid parameter: " + by.getFirst());
         }
-
+        if (by.size() == 2) {
+            if (by.getFirst().equals(by.getLast())) {
+                throw new InvalidFilmInputException("Duplicate parameters: " + by.getFirst());
+            }
+            if (!by.getLast().equals(p1) && !by.getLast().equals(p2)) {
+                throw new InvalidFilmInputException("Invalid parameter: " + by.getLast());
+            }
+        }
         return filmStorage.search(query, by);
     }
 
