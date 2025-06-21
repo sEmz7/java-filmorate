@@ -22,7 +22,6 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
     private final RatingDbStorage ratingDbStorage;
     private final LikesDbStorage likesDbStorage;
     private final DirectorsDbStorage directorsDbStorage;
-
     private static final String FIND_ALL = "SELECT f.id, f.name, f.description, f.release_date, f.duration, " +
             "f.rating_id, r.name AS rating_name " +
             "FROM films AS f " +
@@ -360,10 +359,8 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
 
     private List<Film> processFilms(List<Film> partialFilms) {
         Map<Long, Film> filmMap = new LinkedHashMap<>();
-
         for (Film film : partialFilms) {
             filmMap.computeIfAbsent(film.getId(), id -> createBasicFilm(film));
-
             if (!film.getGenres().isEmpty()) {
                 filmMap.get(film.getId()).getGenres().addAll(film.getGenres());
             }
@@ -371,11 +368,10 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
                 filmMap.get(film.getId()).getDirectors().addAll(film.getDirectors());
             }
         }
-
+        Map<Long, Set<Long>> filmLikes = likesDbStorage.findLikesByFilmIds(filmMap.keySet());
         for (Film film : filmMap.values()) {
-            addLikesToFilm(film);
+            film.setLikes(filmLikes.getOrDefault(film.getId(), Collections.emptySet()));
         }
-
         return new ArrayList<>(filmMap.values());
     }
 
@@ -391,12 +387,5 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
                 .directors(new ArrayList<>())
                 .likes(new HashSet<>())
                 .build();
-    }
-
-    private void addLikesToFilm(Film film) {
-        List<Like> likes = likesDbStorage.findFilmLikes(film.getId());
-        film.getLikes().addAll(likes.stream()
-                .map(Like::getUserId)
-                .collect(Collectors.toSet()));
     }
 }
