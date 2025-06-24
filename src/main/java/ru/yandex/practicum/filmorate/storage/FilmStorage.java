@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface FilmStorage {
 
-    Collection<Film> findAll();
+    List<Film> findAll();
 
     Film create(Film film);
 
@@ -18,9 +18,21 @@ public interface FilmStorage {
 
     Film findFilmById(long id);
 
+    List<Film> findFilmsByDirectorSortYear(long id);
+
+    List<Film> findFilmsByDirectorSortLikes(long id);
+
     List<Like> findFilmLikes(long id);
 
     void addLike(long filmId, long userId);
 
     void deleteLike(long filmId, long userId);
+
+    List<Film> search(String query, List<String> by);
+
+    List<Film> findCommonFilms(long userId, long friendId);
+
+    List<Film> findTopFilmsByGenreAndYear(int limit, Long genreId, Integer year);
+
+    Collection<Film> getRecommendationsForUser(long userId);
 }

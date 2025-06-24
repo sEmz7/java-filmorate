@@ -6,7 +6,8 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.mapper.LikeRowMapper;
 import ru.yandex.practicum.filmorate.model.Like;
 
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -16,6 +17,8 @@ public class LikesDbStorage {
     private static final String FIND_LIKES = "SELECT * FROM likes WHERE film_id = ?;";
     private static final String CREATE = "INSERT INTO likes (film_id, user_id) VALUES (?, ?) ";
     private static final String DELETE = "DELETE FROM likes WHERE film_id = ? AND user_id = ?;";
+    private static final String FIND_ALL = "SELECT film_id, user_id FROM likes";
+    private static final String FIND_LIKES_BY_FILM_IDS = "SELECT film_id, user_id FROM likes WHERE film_id IN (%s)";
 
     public List<Like> findFilmLikes(long filmId) {
         return jdbc.query(FIND_LIKES, likeRowMapper, filmId);
@@ -27,5 +30,23 @@ public class LikesDbStorage {
 
     public void deleteLike(long filmId, long userId) {
         jdbc.update(DELETE, filmId, userId);
+    }
+
+    public List<Like> findAllFilmLikes() {
+        return jdbc.query(FIND_ALL, likeRowMapper);
+    }
+
+    public Map<Long, Set<Long>> findLikesByFilmIds(Collection<Long> filmIds) {
+        if (filmIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+        String inSql = String.join(",", Collections.nCopies(filmIds.size(), "?"));
+        String sql = String.format(FIND_LIKES_BY_FILM_IDS, inSql);
+        List<Like> likes = jdbc.query(sql, likeRowMapper, filmIds.toArray());
+        return likes.stream()
+                .collect(Collectors.groupingBy(
+                        Like::getFilmId,
+                        Collectors.mapping(Like::getUserId, Collectors.toSet())
+                ));
     }
 }
